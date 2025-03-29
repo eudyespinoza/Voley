@@ -1,0 +1,988 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    /* Estilo para el área del marcador */
+    .score-area {
+        background: #f0f0f0;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column; /* Stack the score-display and previous-sets vertically */
+    }
+
+    .score-display {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .team-score {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 120px;
+        height: 120px;
+        border-radius: 10px;
+        padding: 10px;
+        color: white;
+    }
+
+    .local-team {
+        background-color: #1e90ff; /* Blue for local team */
+    }
+
+    .visitor-team {
+        background-color: #ff4500; /* Red for visitor team */
+    }
+
+    .team-score h4 {
+        font-size: 0.7rem; /* Reduced font size for team names */
+        margin-bottom: 5px;
+        color: white;
+        text-transform: uppercase;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%; /* Ensure it doesn't overflow the container */
+    }
+
+    .team-score span {
+        font-size: 2.5rem !important;
+        font-weight: bold;
+        color: white;
+    }
+
+    .set-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #d3d3d3;
+        border-radius: 5px;
+        padding: 5px 10px;
+    }
+
+    .set-info h5 {
+        font-size: 0.8rem;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .set-info span {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .score-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center; /* Vertically center the buttons */
+        gap: 5px;
+        margin-top: 5px;
+    }
+
+    .previous-sets {
+        margin-top: 15px; /* Increased for better spacing */
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        font-size: 0.9rem;
+        color: #333;
+    }
+
+    .previous-set {
+        background-color: #e0e0e0;
+        border-radius: 5px;
+        padding: 5px 10px;
+    }
+
+    /* Estilo para los selectores de jugadores */
+    .player-selector-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        justify-content: center;
+    }
+
+    .player-selector-card {
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        padding: 5px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        flex: 1 1 calc(7.14% - 5px); /* 14 por línea: 100% / 14 ≈ 7.14% */
+        min-width: calc(14.28% - 5px); /* Mínimo 7 por línea en pantallas medianas */
+        max-width: calc(50% - 5px); /* Máximo 2 por línea en pantallas pequeñas */
+        box-sizing: border-box;
+    }
+
+    .player-selector-card:hover {
+        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.15), -5px -5px 20px rgba(255, 255, 255, 0.9);
+    }
+
+    .player-selector-card.selected {
+        background: linear-gradient(145deg, #eebf06, rgba(234, 203, 55, 0.71));
+        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.15), -5px -5px 20px rgba(255, 255, 255, 0.9);
+    }
+
+    .player-selector-card label {
+        color: #333;
+        margin-bottom: 3px;
+        display: block;
+        font-size: 0.6rem !important;
+        text-align: center;
+    }
+
+    .player-selector-card select {
+        font-size: 0.55rem !important;
+        padding: 2px;
+        height: 22px;
+        width: 100%;
+    }
+
+    .player-selector-card button {
+        font-size: 0.55rem !important;
+        padding: 2px 5px;
+        margin-top: 3px;
+        width: 100%;
+    }
+
+    /* Estilo para las pestañas de estadísticas */
+    .nav-tabs {
+        border-bottom: 1px solid #e0e0e0;
+        margin-top: 15px;
+    }
+
+    .nav-tabs .nav-link {
+        color: #666;
+        border: none;
+        border-radius: 8px 8px 0 0;
+        transition: background-color 0.3s, color 0.3s;
+        font-size: 0.65rem !important;
+    }
+
+    .nav-tabs .nav-link:hover {
+        background-color: #f0f0f0;
+        color: #333;
+    }
+
+    .nav-tabs .nav-link.active {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .tab-content {
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        border-radius: 0 8px 8px 8px;
+        padding: 15px;
+        position: relative;
+    }
+
+    .tab-content .player-info {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        min-width: 100px;
+    }
+
+    .tab-content .player-info .player-name {
+        font-size: 0.65rem;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .tab-content .player-info .player-number {
+        font-size: 3.5rem;
+        font-weight: bold;
+        color: #007bff;
+        line-height: 1;
+        display: block !important;
+    }
+
+    .tab-pane .d-flex {
+        gap: 20px;
+    }
+
+    .tab-pane span {
+        color: #333;
+    }
+
+    /* Estilo moderno para los botones de + y - */
+    .btn-circle {
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.6rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        line-height: 20px; /* Ensure the icon is centered vertically */
+    }
+
+    .btn-circle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-circle:active {
+        transform: scale(0.95);
+    }
+
+    .btn-circle.success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .btn-circle.danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-circle:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+
+    /* Estilo para el área de resumen y notas */
+    .summary-notes {
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        border-radius: 10px;
+        padding: 15px;
+    }
+
+    .summary-notes h4 {
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .summary-notes p {
+        color: #666;
+    }
+
+    .summary-notes textarea {
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        font-size: 0.7rem !important;
+    }
+
+    /* Estilo para los botones secundarios */
+    .action-buttons button {
+        padding: 8px 15px;
+        font-size: 0.7rem;
+        border-radius: 8px;
+        transition: background-color 0.3s;
+        margin-top: 10px;
+    }
+
+    .action-buttons .btn-primary {
+        background-color: #007bff;
+        border: none;
+    }
+
+    .action-buttons .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .action-buttons .btn-warning {
+        background-color: #ffc107;
+        border: none;
+    }
+
+    .action-buttons .btn-warning:hover {
+        background-color: #e0a800;
+    }
+
+    .action-buttons .btn-success {
+        background-color: #28a745;
+        border: none;
+    }
+
+    .action-buttons .btn-success:hover {
+        background-color: #218838;
+    }
+
+    .action-buttons .btn-danger {
+        background-color: #dc3545;
+        border: none;
+    }
+
+    .action-buttons .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+    .action-buttons .btn-info {
+        background-color: #17a2b8;
+        border: none;
+    }
+
+    .action-buttons .btn-info:hover {
+        background-color: #138496;
+    }
+
+    /* Ajustes para responsividad */
+    @media (max-width: 576px) {
+        .score-area {
+            padding: 10px;
+        }
+
+        .team-score {
+            width: 100px;
+            height: 100px;
+        }
+
+        .team-score h4 {
+            font-size: 0.6rem; /* Even smaller for mobile */
+        }
+
+        .team-score span {
+            font-size: 2rem !important;
+        }
+
+        .set-info h5 {
+            font-size: 0.7rem;
+        }
+
+        .set-info span {
+            font-size: 1rem;
+        }
+
+        .player-selector-card {
+            padding: 3px;
+        }
+
+        .player-selector-card label {
+            font-size: 0.5rem !important;
+            margin-bottom: 2px;
+        }
+
+        .player-selector-card select {
+            font-size: 0.5rem !important;
+            padding: 1px;
+            height: 20px;
+        }
+
+        .player-selector-card button {
+            font-size: 0.5rem !important;
+            padding: 1px 3px;
+            margin-top: 2px;
+        }
+
+        .tab-content {
+            padding: 10px;
+        }
+
+        .tab-pane .d-flex {
+            gap: 10px;
+        }
+
+        .btn-circle {
+            width: 18px;
+            height: 18px;
+            font-size: 0.5rem;
+        }
+
+        .summary-notes {
+            padding: 10px;
+        }
+
+        .action-buttons button {
+            padding: 5px 10px;
+            font-size: 0.6rem;
+        }
+    }
+</style>
+
+<div class="container mt-3">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-center">Estadísticas en Tiempo Real - {{ partido.rival }} vs {{ partido.equipo.nombre }}</h2>
+            <div class="score-area">
+                <div class="score-display">
+                    <div class="team-score local-team">
+                        <h4>{{ partido.equipo.nombre }}</h4>
+                        <span id="scoreLocal">0</span>
+                        <div class="score-controls">
+                            <button class="btn-circle success" id="localIncrement" onclick="updateScore('local', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger" id="localDecrement" onclick="updateScore('local', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                    </div>
+                    <div class="set-info">
+                        <h5>SET</h5>
+                        <span id="setNumber">{{ currentSet }}</span>
+                        <span id="setScore">{{ partido.equipo.nombre }} 0 - 0 {{ partido.rival }}</span>
+                    </div>
+                    <div class="team-score visitor-team">
+                        <h4>{{ partido.rival }}</h4>
+                        <span id="scoreVisitante">0</span>
+                        <div class="score-controls">
+                            <button class="btn-circle success" id="visitorIncrement" onclick="updateScore('visitante', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger" id="visitorDecrement" onclick="updateScore('visitante', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="previous-sets" id="previousSets">
+                    <!-- Previous set scores will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selección de jugadores en cancha -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <h4>Jugadores en Cancha</h4>
+            <div class="player-selector-container">
+                {% for pos in range(1, 8) %}
+                <div class="player-selector-card" id="card_{{ pos }}">
+                    <label>Puesto {{ pos }}</label>
+                    <select class="form-control" id="posicion_{{ pos }}" onchange="updateTitular({{ partido.id }}, this.value, {{ pos }})">
+                        <option value="">-- Selecciona --</option>
+                        {% for jugador in jugadores %}
+                        {% set stat = estadisticas|selectattr("jugador_id", "equalto", jugador.id)|first %}
+                        <option value="{{ jugador.id }}" {% if stat and stat.posicion == pos %}selected{% endif %} data-numero="{{ jugador.numero }}">
+                            {{ jugador.nombre }} ({{ jugador.posicion }} - {{ jugador.numero }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-light mt-1 w-100" id="select_btn_{{ pos }}" onclick="selectPlayerFromPosition({{ pos }})">Seleccionar</button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de acciones -->
+    <div class="row">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="statTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="saque-tab" data-bs-toggle="tab" href="#saque" role="tab">Saque</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="ataque-tab" data-bs-toggle="tab" href="#ataque" role="tab">Ataque</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="recepcion-tab" data-bs-toggle="tab" href="#recepcion" role="tab">Recepción</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="bloqueo-tab" data-bs-toggle="tab" href="#bloqueo" role="tab">Bloqueo</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="defensa-tab" data-bs-toggle="tab" href="#defensa" role="tab">Defensa</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="asistencia-tab" data-bs-toggle="tab" href="#asistencia" role="tab">Asistencia</a>
+                </li>
+            </ul>
+            <div class="tab-content mt-3" id="statTabsContent">
+                <div class="player-info" id="playerInfo">
+                    <div class="player-name" id="selectedPlayerName"></div>
+                    <div class="player-number" id="selectedPlayerNumber"></div>
+                </div>
+                <div class="tab-pane fade show active" id="saque" role="tabpanel">
+                    <div class="d-flex flex-wrap gap-3">
+                        <div>
+                            <span>Ace: <span id="saques_ace">0</span></span>
+                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'saques_ace', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'saques_ace', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                        <div>
+                            <span>Error: <span id="saques_fallidos">0</span></span>
+                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'saques_fallidos', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'saques_fallidos', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                        <div>
+                            <span>Total: <span id="saques_totales">0</span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="ataque" role="tabpanel">
+                    <div class="d-flex flex-wrap gap-3">
+                        <div>
+                            <span>Puntos: <span id="ataques_puntos">0</span></span>
+                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'ataques_puntos', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'ataques_puntos', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                        <div>
+                            <span>Error: <span id="ataques_fallidos">0</span></span>
+                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'ataques_fallidos', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'ataques_fallidos', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                        <div>
+                            <span>Bloqueado: <span id="ataques_bloqueados">0</span></span>
+                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'ataques_bloqueados', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'ataques_bloqueados', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                        <div>
+                            <span>Efectividad: <span id="efectividad_ataque">0%</span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="recepcion" role="tabpanel">
+                    <div class="d-flex flex-wrap gap-3">
+                        <div>
+                            <span>Perfectas: <span id="recepciones_perfectas">0</span></span>
+                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'recepciones_perfectas', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'recepciones_perfectas', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                        <div>
+                            <span>Positivas: <span id="recepciones_positivas">0</span></span>
+                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'recepciones_positivas', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'recepciones_positivas', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                        <div>
+                            <span>Errores: <span id="recepciones_fallidas">0</span></span>
+                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'recepciones_fallidas', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'recepciones_fallidas', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="bloqueo" role="tabpanel">
+                    <div class="d-flex flex-wrap gap-3">
+                        <div>
+                            <span>Puntos: <span id="bloqueos_puntos">0</span></span>
+                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'bloqueos_puntos', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'bloqueos_puntos', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                        <div>
+                            <span>Toques: <span id="bloqueos_toques">0</span></span>
+                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'bloqueos_toques', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'bloqueos_toques', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="defensa" role="tabpanel">
+                    <div class="d-flex flex-wrap gap-3">
+                        <div>
+                            <span>Levantadas: <span id="defensas_levantadas">0</span></span>
+                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'defensas_levantadas', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'defensas_levantadas', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                        <div>
+                            <span>Errores: <span id="defensas_fallidas">0</span></span>
+                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'defensas_fallidas', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'defensas_fallidas', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="asistencia" role="tabpanel">
+                    <div class="d-flex flex-wrap gap-3">
+                        <div>
+                            <span>Asistencias: <span id="asistencias">0</span></span>
+                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'asistencias', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'asistencias', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                        <div>
+                            <span>Errores: <span id="asistencias_fallidas">0</span></span>
+                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'asistencias_fallidas', 'increment')"><i class="bi bi-plus"></i></button>
+                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'asistencias_fallidas', 'decrement')"><i class="bi bi-dash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen y notas -->
+    <div class="row mt-3 summary-notes">
+        <div class="col-12 col-md-6">
+            <h4>Resumen del Jugador</h4>
+            <p id="resumenJugador">Selecciona un jugador para ver su resumen.</p>
+        </div>
+        <div class="col-12 col-md-6">
+            <h4>Notas</h4>
+            <textarea id="notas" class="form-control" rows="2" placeholder="Notas rápidas"></textarea>
+        </div>
+    </div>
+
+    <!-- Botones secundarios -->
+    <div class="row mt-3 action-buttons">
+        <div class="col-12 text-center">
+            <button class="btn btn-primary me-2" onclick="rotatePositions()">Rotar Posiciones</button>
+            <button class="btn btn-warning me-2" onclick="undoLastAction()">Deshacer</button>
+            <button class="btn btn-success me-2" onclick="exportarEstadisticas('csv')"><i class="bi bi-file-earmark-excel"></i> Exportar CSV</button>
+            <button class="btn btn-danger me-2" onclick="exportarEstadisticas('pdf')"><i class="bi bi-file-earmark-pdf"></i> Exportar PDF</button>
+            <button class="btn btn-info" onclick="grabarJuego()"><i class="bi bi-save"></i> Grabar Juego</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4/dist/socket.io.min.js"></script>
+<script>
+const socket = io();
+let selectedPlayer = null;
+let selectedPosition = null;
+let lastAction = null;
+let currentSet = 1;
+let setsWonLocal = 0;
+let setsWonVisitante = 0;
+let maxSets = 5; // Best of 5 sets
+let setScores = []; // Array to store scores of each set
+let matchEnded = false; // Flag to track if the match has ended
+
+function selectPlayerFromPosition(posicion) {
+    const select = document.getElementById(`posicion_${posicion}`);
+    const jugador_id = select.value;
+    if (jugador_id) {
+        selectedPlayer = parseInt(jugador_id);
+        selectedPosition = posicion;
+        document.querySelectorAll('.player-selector-card').forEach(card => card.classList.remove('selected'));
+        document.getElementById(`card_${posicion}`).classList.add('selected');
+        const selectedOption = select.options[select.selectedIndex];
+        const playerName = selectedOption.text.split(' (')[0]; // Extraer solo el nombre
+        const playerNumber = selectedOption.getAttribute('data-numero') || 'N/A'; // Valor por defecto si no hay número
+        console.log('Nombre:', playerName, 'Número:', playerNumber); // Depuración
+        document.getElementById('selectedPlayerName').innerText = playerName;
+        document.getElementById('selectedPlayerNumber').innerText = playerNumber; // Asegurar que se muestre
+        loadPlayerStats(selectedPlayer);
+        updateResumen(selectedPlayer);
+    } else {
+        selectedPlayer = null;
+        selectedPosition = null;
+        document.querySelectorAll('.player-selector-card').forEach(card => card.classList.remove('selected'));
+        document.getElementById('selectedPlayerName').innerText = '';
+        document.getElementById('selectedPlayerNumber').innerText = '';
+        resetStatsDisplay();
+        document.getElementById('resumenJugador').innerText = 'Selecciona un jugador para ver su resumen.';
+    }
+}
+
+function loadPlayerStats(jugador_id) {
+    fetch(`/api/estadisticas?tipo=por_partido&jugador_id=${jugador_id}&partido_id={{ partido.id }}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                resetStatsDisplay();
+            } else {
+                document.getElementById('saques_ace').innerText = data.saques_ace;
+                document.getElementById('saques_fallidos').innerText = data.saques_fallidos;
+                document.getElementById('saques_totales').innerText = data.saques_totales;
+                document.getElementById('ataques_puntos').innerText = data.ataques_puntos;
+                document.getElementById('ataques_fallidos').innerText = data.ataques_fallidos;
+                document.getElementById('ataques_bloqueados').innerText = data.ataques_bloqueados;
+                document.getElementById('efectividad_ataque').innerText = data.efectividad_ataque.toFixed(2) + '%';
+                document.getElementById('recepciones_perfectas').innerText = data.recepciones_perfectas;
+                document.getElementById('recepciones_positivas').innerText = data.recepciones_positivas;
+                document.getElementById('recepciones_fallidas').innerText = data.recepciones_fallidas;
+                document.getElementById('bloqueos_puntos').innerText = data.bloqueos_puntos;
+                document.getElementById('bloqueos_toques').innerText = data.bloqueos_toques;
+                document.getElementById('defensas_levantadas').innerText = data.defensas_levantadas;
+                document.getElementById('defensas_fallidas').innerText = data.defensas_fallidas;
+                document.getElementById('asistencias').innerText = data.asistencias;
+                document.getElementById('asistencias_fallidas').innerText = data.asistencias_fallidas;
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar estadísticas:', error);
+            resetStatsDisplay();
+        });
+}
+
+function resetStatsDisplay() {
+    document.getElementById('saques_ace').innerText = '0';
+    document.getElementById('saques_fallidos').innerText = '0';
+    document.getElementById('saques_totales').innerText = '0';
+    document.getElementById('ataques_puntos').innerText = '0';
+    document.getElementById('ataques_fallidos').innerText = '0';
+    document.getElementById('ataques_bloqueados').innerText = '0';
+    document.getElementById('efectividad_ataque').innerText = '0%';
+    document.getElementById('recepciones_perfectas').innerText = '0';
+    document.getElementById('recepciones_positivas').innerText = '0';
+    document.getElementById('recepciones_fallidas').innerText = '0';
+    document.getElementById('bloqueos_puntos').innerText = '0';
+    document.getElementById('bloqueos_toques').innerText = '0';
+    document.getElementById('defensas_levantadas').innerText = '0';
+    document.getElementById('defensas_fallidas').innerText = '0';
+    document.getElementById('asistencias').innerText = '0';
+    document.getElementById('asistencias_fallidas').innerText = '0';
+}
+
+function updateStat(jugador_id, stat, action) {
+    if (!jugador_id) return alert('Selecciona un jugador primero.');
+    socket.emit('update_stat', { partido_id: {{ partido.id }}, jugador_id: jugador_id, stat: stat, action: action });
+    lastAction = { jugador_id, stat, action };
+}
+
+function rotatePositions() {
+    socket.emit('rotate_positions', { partido_id: {{ partido.id }} });
+}
+
+function undoLastAction() {
+    if (!lastAction) return;
+    const oppositeAction = lastAction.action === 'increment' ? 'decrement' : 'increment';
+    socket.emit('update_stat', { partido_id: {{ partido.id }}, jugador_id: lastAction.jugador_id, stat: lastAction.stat, action: oppositeAction });
+    lastAction = null;
+}
+
+function updateScore(team, action) {
+    if (matchEnded) return; // Prevent score updates after the match ends
+
+    let scoreLocal = parseInt(document.getElementById('scoreLocal').innerText);
+    let scoreVisitante = parseInt(document.getElementById('scoreVisitante').innerText);
+    if (team === 'local') {
+        if (action === 'increment') scoreLocal++;
+        else if (action === 'decrement' && scoreLocal > 0) scoreLocal--;
+    } else {
+        if (action === 'increment') scoreVisitante++;
+        else if (action === 'decrement' && scoreVisitante > 0) scoreVisitante--;
+    }
+    document.getElementById('scoreLocal').innerText = scoreLocal;
+    document.getElementById('scoreVisitante').innerText = scoreVisitante;
+
+    // Determine the target score for the set (25 for sets 1-4, 15 for set 5)
+    const targetScore = currentSet === 5 ? 15 : 25;
+
+    // Check if the set has ended (must reach target score with a 2-point lead)
+    let setEnded = false;
+    if (scoreLocal >= targetScore && scoreLocal - scoreVisitante >= 2) {
+        setsWonLocal++;
+        setScores.push({ set: currentSet, local: scoreLocal, visitante: scoreVisitante });
+        setEnded = true;
+        resetSet();
+    } else if (scoreVisitante >= targetScore && scoreVisitante - scoreLocal >= 2) {
+        setsWonVisitante++;
+        setScores.push({ set: currentSet, local: scoreLocal, visitante: scoreVisitante });
+        setEnded = true;
+        resetSet();
+    }
+
+    document.getElementById('setScore').innerText = `{{ partido.equipo.nombre }} ${setsWonLocal} - ${setsWonVisitante} {{ partido.rival }}`;
+
+    // Emit the updated scores after the reset (if a set ended)
+    if (!setEnded) {
+        socket.emit('update_score', { partido_id: {{ partido.id }}, scoreLocal: scoreLocal, scoreVisitante: scoreVisitante });
+    }
+}
+
+function resetSet() {
+    // Check if the match has ended (best of 5, so a team needs 3 sets to win)
+    if (setsWonLocal >= 3 || setsWonVisitante >= 3) {
+        matchEnded = true;
+        alert(`Partido terminado! ${setsWonLocal > setsWonVisitante ? '{{ partido.equipo.nombre }}' : '{{ partido.rival }}'} gana ${setsWonLocal}:${setsWonVisitante}`);
+        // Disable the score buttons
+        document.getElementById('localIncrement').disabled = true;
+        document.getElementById('localDecrement').disabled = true;
+        document.getElementById('visitorIncrement').disabled = true;
+        document.getElementById('visitorDecrement').disabled = true;
+
+        // Send the final data to the backend to mark the match as "Finalizado"
+        fetch(`/partido/finalizar/{{ partido.id }}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                marcador_local: parseInt(document.getElementById('scoreLocal').innerText),
+                marcador_visitante: parseInt(document.getElementById('scoreVisitante').innerText),
+                set_scores: setScores
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data.message);
+        })
+        .catch(error => {
+            console.error('Error al finalizar el partido:', error);
+            alert('Error al finalizar el partido');
+        });
+        return; // Do not reset the scoreboard
+    }
+
+    let scoreLocal = 0;
+    let scoreVisitante = 0;
+    currentSet++;
+    console.log(`Resetting set: Current Set ${currentSet}, Scores reset to ${scoreLocal}-${scoreVisitante}`); // Debug log
+
+    // Check if we need a fifth set (tied at 2-2 after 4 sets)
+    if (currentSet === 5 && setsWonLocal === 2 && setsWonVisitante === 2) {
+        console.log("Playing fifth set to 15 points");
+    } else if (currentSet > maxSets) {
+        console.warn("Unexpected set continuation");
+    }
+
+    // Update the DOM with the reset scores
+    document.getElementById('scoreLocal').innerText = scoreLocal;
+    document.getElementById('scoreVisitante').innerText = scoreVisitante;
+    document.getElementById('setNumber').innerText = currentSet;
+    document.getElementById('setScore').innerText = `{{ partido.equipo.nombre }} ${setsWonLocal} - ${setsWonVisitante} {{ partido.rival }}`;
+    displayPreviousSets();
+
+    // Emit the reset scores to the server
+    socket.emit('update_score', { partido_id: {{ partido.id }}, scoreLocal: scoreLocal, scoreVisitante: scoreVisitante });
+}
+
+function displayPreviousSets() {
+    const previousSetsDiv = document.getElementById('previousSets');
+    previousSetsDiv.innerHTML = '';
+    setScores.forEach(score => {
+        const setDiv = document.createElement('div');
+        setDiv.className = 'previous-set';
+        setDiv.innerText = `Set ${score.set}: {{ partido.equipo.nombre }} ${score.local} - ${score.visitante} {{ partido.rival }}`;
+        previousSetsDiv.appendChild(setDiv);
+    });
+}
+
+function updateTitular(partido_id, jugador_id, posicion) {
+    if (jugador_id === "") {
+        socket.emit('update_titulares', { partido_id: partido_id, jugador_id: parseInt(jugador_id), action: 'remove', posicion: parseInt(posicion) });
+    } else {
+        socket.emit('update_titulares', { partido_id: partido_id, jugador_id: parseInt(jugador_id), action: 'add', posicion: parseInt(posicion) });
+    }
+}
+
+function exportarEstadisticas(format) {
+    fetch(`/partido/estadisticas/exportar/{{ partido.id }}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `format=${format}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        window.open(data.url, '_blank');
+    });
+}
+
+function grabarJuego() {
+    if (confirm('¿Estás seguro de que deseas grabar el juego? Esto reiniciará todas las estadísticas del partido.')) {
+        fetch(`/partido/estadisticas/grabar/{{ partido.id }}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            resetStatsDisplay();
+            document.getElementById('scoreLocal').innerText = '0';
+            document.getElementById('scoreVisitante').innerText = '0';
+            document.getElementById('setNumber').innerText = '1';
+            document.getElementById('setScore').innerText = '{{ partido.equipo.nombre }} 0 - 0 {{ partido.rival }}';
+            currentSet = 1;
+            setsWonLocal = 0;
+            setsWonVisitante = 0;
+            maxSets = 5;
+            setScores = [];
+            matchEnded = false;
+            displayPreviousSets();
+            // Re-enable the score buttons
+            document.getElementById('localIncrement').disabled = false;
+            document.getElementById('localDecrement').disabled = false;
+            document.getElementById('visitorIncrement').disabled = false;
+            document.getElementById('visitorDecrement').disabled = false;
+            for (let pos = 1; pos <= 7; pos++) {
+                document.getElementById(`posicion_${pos}`).value = '';
+                document.getElementById(`select_btn_${pos}`).classList.remove('btn-warning');
+                document.getElementById(`card_${pos}`).classList.remove('selected');
+            }
+            selectedPlayer = null;
+            selectedPosition = null;
+            document.getElementById('selectedPlayerName').innerText = '';
+            document.getElementById('selectedPlayerNumber').innerText = '';
+            document.getElementById('resumenJugador').innerText = 'Selecciona un jugador para ver su resumen.';
+        })
+        .catch(error => {
+            console.error('Error al grabar el juego:', error);
+            alert('Error al grabar el juego');
+        });
+    }
+}
+
+function updateResumen(jugador_id) {
+    if (!jugador_id) return;
+    const resumen = `Jugador #${jugador_id}: Saques ${document.getElementById('saques_totales').innerText}, Ataques ${document.getElementById('ataques_puntos').innerText}/${document.getElementById('ataques_totales') ? document.getElementById('ataques_totales').innerText : '0'}`;
+    document.getElementById('resumenJugador').innerText = resumen;
+}
+
+// Initialize the set score on page load
+document.getElementById('setScore').innerText = `{{ partido.equipo.nombre }} ${setsWonLocal} - ${setsWonVisitante} {{ partido.rival }}`;
+document.getElementById('setNumber').innerText = currentSet;
+displayPreviousSets();
+
+socket.on('stat_updated', function(data) {
+    if (data.jugador_id === selectedPlayer) {
+        document.getElementById(`${data.stat}`).innerText = data.value;
+        if (data.stat.startsWith('saques_')) {
+            document.getElementById('saques_totales').innerText = data.saques_totales;
+        } else if (data.stat.startsWith('ataques_')) {
+            document.getElementById('efectividad_ataque').innerText = data.efectividad_ataque.toFixed(2) + '%';
+        }
+        document.getElementById('recepciones_perfectas').innerText = data.recepciones_perfectas;
+        document.getElementById('recepciones_positivas').innerText = data.recepciones_positivas;
+        document.getElementById('recepciones_fallidas').innerText = data.recepciones_fallidas;
+        document.getElementById('bloqueos_puntos').innerText = data.bloqueos_puntos;
+        document.getElementById('bloqueos_toques').innerText = data.bloqueos_toques;
+        document.getElementById('defensas_levantadas').innerText = data.defensas_levantadas;
+        document.getElementById('defensas_fallidas').innerText = data.defensas_fallidas;
+        document.getElementById('asistencias').innerText = data.asistencias;
+        document.getElementById('asistencias_fallidas').innerText = data.asistencias_fallidas;
+        updateResumen(data.jugador_id);
+    }
+});
+
+socket.on('score_updated', function(data) {
+    document.getElementById('scoreLocal').innerText = data.scoreLocal;
+    document.getElementById('scoreVisitante').innerText = data.scoreVisitante;
+});
+
+socket.on('titulares_updated', function(data) {
+    const titulares = data.titulares;
+    document.getElementById(`titulares_${data.partido_id}`).innerHTML = titulares.map(id => {
+        const jugador = {{ jugadores|tojson }}.find(j => j.id === id);
+        return jugador ? jugador.nombre : `Jugador no encontrado (ID: ${id})`;
+    }).join(', ');
+    if (data.action === 'add') {
+        document.getElementById(`posicion_${data.posicion}`).value = data.jugador_id;
+    } else if (data.action === 'remove') {
+        document.getElementById(`posicion_${data.posicion}`).value = '';
+    }
+    if (selectedPlayer && !titulares.includes(selectedPlayer)) {
+        selectedPlayer = null;
+        selectedPosition = null;
+        document.querySelectorAll('.player-selector-card').forEach(card => card.classList.remove('selected'));
+        document.getElementById('selectedPlayerName').innerText = '';
+        document.getElementById('selectedPlayerNumber').innerText = '';
+        resetStatsDisplay();
+        document.getElementById('resumenJugador').innerText = 'Selecciona un jugador para ver su resumen.';
+    } else if (selectedPlayer) {
+        selectPlayerFromPosition(selectedPosition);
+    }
+});
+
+socket.on('positions_rotated', function(data) {
+    const posiciones = data.posiciones;
+    for (let pos = 1; pos <= 7; pos++) {
+        const select = document.getElementById(`posicion_${pos}`);
+        const jugador_id = Object.keys(posiciones).find(id => posiciones[id] === pos);
+        select.value = jugador_id || '';
+    }
+    if (selectedPlayer) {
+        selectedPosition = Object.keys(posiciones).find(id => parseInt(id) === selectedPlayer) ? posiciones[selectedPlayer] : null;
+        if (selectedPosition) {
+            selectPlayerFromPosition(selectedPosition);
+        } else {
+            selectedPlayer = null;
+            selectedPosition = null;
+            document.querySelectorAll('.player-selector-card').forEach(card => card.classList.remove('selected'));
+            document.getElementById('selectedPlayerName').innerText = '';
+            document.getElementById('selectedPlayerNumber').innerText = '';
+            resetStatsDisplay();
+            document.getElementById('resumenJugador').innerText = 'Selecciona un jugador para ver su resumen.';
+        }
+    }
+});
+
+socket.on('titulares_error', function(data) {
+    alert(data.message);
+});
+</script>
+{% endblock %}

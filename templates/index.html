@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    /* Estilo para las cards (mismo estilo que en jugadores y partidos) */
+    .index-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        margin-bottom: 15px;
+        padding: 15px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 120px; /* Asegurar espacio suficiente para el diseño */
+    }
+    .index-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.15), -5px -5px 20px rgba(255, 255, 255, 0.9);
+    }
+    .index-card h5 {
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #333;
+    }
+    .index-card p {
+        margin: 2px 0;
+        color: #666;
+    }
+    /* Ajustes para responsividad */
+    @media (max-width: 576px) {
+        .index-card {
+            padding: 10px;
+            min-height: 100px;
+        }
+        .index-card h5 {
+            font-size: 0.65rem !important;
+        }
+        .index-card p {
+            font-size: 0.6rem !important;
+        }
+    }
+</style>
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Bienvenido a Voley Stats</h1>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="index-card" onclick="window.location.href='{{ url_for('listar_equipos') }}'">
+                <div class="text-center">
+                    <h5 class="card-title">Equipos</h5>
+                    <p class="card-text">Gestiona los equipos de tu liga.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="index-card" onclick="window.location.href='{{ url_for('listar_jugadores') }}'">
+                <div class="text-center">
+                    <h5 class="card-title">Jugadores</h5>
+                    <p class="card-text">Administra los jugadores y sus estadísticas.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="index-card" onclick="window.location.href='{{ url_for('listar_partidos') }}'">
+                <div class="text-center">
+                    <h5 class="card-title">Partidos</h5>
+                    <p class="card-text">Registra y gestiona los partidos.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="index-card" onclick="window.location.href='{{ url_for('mostrar_tablero') }}'">
+                <div class="text-center">
+                    <h5 class="card-title">Tablero</h5>
+                    <p class="card-text">Visualiza las estadísticas en tiempo real.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="index-card" onclick="window.location.href='{{ url_for('ver_reportes') }}'">
+                <div class="text-center">
+                    <h5 class="card-title">Reportes</h5>
+                    <p class="card-text">Genera reportes y estadísticas detalladas.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

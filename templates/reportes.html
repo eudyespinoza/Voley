@@ -1,0 +1,515 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    /* Estilo neumórfico para los selectores */
+    .filter-card {
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 10px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .filter-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.15), -5px -5px 20px rgba(255, 255, 255, 0.9);
+    }
+    .filter-card label {
+        color: #333;
+        margin-bottom: 5px;
+        display: block;
+    }
+    .filter-card select {
+        font-size: 0.65rem !important;
+        padding: 5px;
+        height: 30px;
+        width: 100%;
+    }
+
+    /* Estilo para el área de estadísticas */
+    .stats-area {
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .stats-area h4 {
+        color: #333;
+        margin-bottom: 15px;
+    }
+    .stats-area p {
+        color: #666;
+        margin-bottom: 10px;
+    }
+    .stats-area canvas {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Estilo para los botones de exportación */
+    .export-buttons button {
+        padding: 8px 15px;
+        font-size: 0.7rem;
+        border-radius: 8px;
+        transition: background-color 0.3s;
+    }
+    .export-buttons .btn-success {
+        background-color: #28a745;
+        border: none;
+    }
+    .export-buttons .btn-success:hover {
+        background-color: #218838;
+    }
+    .export-buttons .btn-danger {
+        background-color: #dc3545;
+        border: none;
+    }
+    .export-buttons .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+    /* Ajustes para responsividad */
+    @media (max-width: 576px) {
+        .filter-card {
+            padding: 8px;
+        }
+        .filter-card select {
+            font-size: 0.6rem !important;
+            padding: 3px;
+            height: 25px;
+        }
+        .stats-area {
+            padding: 10px;
+        }
+        .stats-area h4 {
+            font-size: 0.65rem !important;
+        }
+        .stats-area p {
+            font-size: 0.6rem !important;
+        }
+        .export-buttons button {
+            padding: 5px 10px;
+            font-size: 0.6rem;
+        }
+    }
+</style>
+
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-3">📊 Reportes y Estadísticas</h2>
+        <div class="row mb-4">
+            <div class="col-12 col-md-4 mb-2">
+                <div class="filter-card">
+                    <label>Tipo de Estadísticas:</label>
+                    <select id="tipoEstadisticas" class="form-control" onchange="actualizarFiltros(); cargarEstadisticas();">
+                        <option value="por_partido">Por Partido (Jugador)</option>
+                        <option value="generales">Generales (Jugador)</option>
+                        <option value="equipo">Equipo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 mb-2">
+                <div class="filter-card">
+                    <label id="labelFiltro1">Seleccionar Jugador:</label>
+                    <select id="selectJugador" class="form-control" onchange="cargarEstadisticas();">
+                        <option value="">Todos</option>
+                        {% for jugador in jugadores %}
+                        <option value="{{ jugador.id }}">{{ jugador.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                    <select id="selectEquipo" class="form-control" style="display: none;" onchange="cargarEstadisticas();">
+                        <option value="">Selecciona un equipo</option>
+                        {% for equipo in equipos %}
+                        <option value="{{ equipo.id }}">{{ equipo.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 mb-2" id="partidoFiltro">
+                <div class="filter-card">
+                    <label>Seleccionar Partido:</label>
+                    <select id="selectPartido" class="form-control" onchange="cargarEstadisticas();">
+                        <option value="">Todos</option>
+                        {% for partido in partidos %}
+                        <option value="{{ partido.id }}">{{ partido.rival }} vs {{ partido.equipo.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="stats-area">
+            <h4 id="statsTitle">Estadísticas</h4>
+            <p id="statsSummary">Selecciona los filtros para ver las estadísticas.</p>
+            <div class="row">
+                <div class="col-12 col-md-6 mb-3">
+                    <canvas id="saquesChart"></canvas>
+                </div>
+                <div class="col-12 col-md-6 mb-3">
+                    <canvas id="ataquesChart"></canvas>
+                </div>
+                <div class="col-12 col-md-6 mb-3">
+                    <canvas id="recepcionesChart"></canvas>
+                </div>
+                <div class="col-12 col-md-6 mb-3">
+                    <canvas id="bloqueosChart"></canvas>
+                </div>
+                <div class="col-12 col-md-6 mb-3">
+                    <canvas id="defensasChart"></canvas>
+                </div>
+                <div class="col-12 col-md-6 mb-3">
+                    <canvas id="asistenciasChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="text-center export-buttons">
+            <button class="btn btn-success me-2" onclick="exportarEstadisticas('excel')">
+                <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+            </button>
+            <button class="btn btn-danger" onclick="exportarEstadisticas('pdf')">
+                <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let saquesChart, ataquesChart, recepcionesChart, bloqueosChart, defensasChart, asistenciasChart;
+
+function actualizarFiltros() {
+    const tipo = document.getElementById('tipoEstadisticas').value;
+    const labelFiltro1 = document.getElementById('labelFiltro1');
+    const selectJugador = document.getElementById('selectJugador');
+    const selectEquipo = document.getElementById('selectEquipo');
+    const partidoFiltro = document.getElementById('partidoFiltro');
+
+    if (tipo === 'equipo') {
+        labelFiltro1.innerText = 'Seleccionar Equipo:';
+        selectJugador.style.display = 'none';
+        selectEquipo.style.display = 'block';
+        partidoFiltro.style.display = 'none';
+    } else {
+        labelFiltro1.innerText = 'Seleccionar Jugador:';
+        selectJugador.style.display = 'block';
+        selectEquipo.style.display = 'none';
+        partidoFiltro.style.display = tipo === 'por_partido' ? 'block' : 'none';
+    }
+}
+
+function cargarEstadisticas() {
+    const tipo = document.getElementById('tipoEstadisticas').value;
+    const jugador_id = document.getElementById('selectJugador').value;
+    const partido_id = document.getElementById('selectPartido').value;
+    const equipo_id = document.getElementById('selectEquipo').value;
+
+    let url = `/api/estadisticas?tipo=${tipo}`;
+    if (tipo === 'por_partido' && jugador_id && partido_id) {
+        url += `&jugador_id=${jugador_id}&partido_id=${partido_id}`;
+    } else if (tipo === 'generales' && jugador_id) {
+        url += `&jugador_id=${jugador_id}`;
+    } else if (tipo === 'equipo' && equipo_id) {
+        url += `&equipo_id=${equipo_id}`;
+    } else {
+        document.getElementById('statsSummary').innerText = 'Por favor selecciona los filtros necesarios.';
+        destroyCharts();
+        return;
+    }
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('statsSummary').innerText = 'No se encontraron estadísticas.';
+                destroyCharts();
+                return;
+            }
+
+            // Actualizar el título y el resumen
+            document.getElementById('statsTitle').innerText = tipo === 'equipo' ? `Estadísticas del Equipo: ${data.equipo}` : `Estadísticas de ${data.jugador}${tipo === 'por_partido' ? ' vs ' + data.partido : ''}`;
+            document.getElementById('statsSummary').innerText = `Efectividad de Ataque: ${data.efectividad_ataque.toFixed(2)}% | Total Saques: ${data.saques_totales} | Total Ataques: ${data.ataques_totales}`;
+
+            // Destruir gráficos anteriores si existen
+            destroyCharts();
+
+            // Gráfico de Saques
+            saquesChart = new Chart(document.getElementById('saquesChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Ace', 'Errores', 'Total'],
+                    datasets: [{
+                        label: 'Saques',
+                        data: [data.saques_ace, data.saques_fallidos, data.saques_totales],
+                        backgroundColor: ['#28a745', '#dc3545', '#007bff'],
+                        borderColor: ['#218838', '#c82333', '#0056b3'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Saques'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Ataques
+            ataquesChart = new Chart(document.getElementById('ataquesChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Puntos', 'Errores', 'Bloqueados', 'Total'],
+                    datasets: [{
+                        label: 'Ataques',
+                        data: [data.ataques_puntos, data.ataques_fallidos, data.ataques_bloqueados, data.ataques_totales],
+                        backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#007bff'],
+                        borderColor: ['#218838', '#c82333', '#e0a800', '#0056b3'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Ataques'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Recepciones
+            recepcionesChart = new Chart(document.getElementById('recepcionesChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Perfectas', 'Positivas', 'Errores'],
+                    datasets: [{
+                        label: 'Recepciones',
+                        data: [data.recepciones_perfectas, data.recepciones_positivas, data.recepciones_fallidas],
+                        backgroundColor: ['#28a745', '#17a2b8', '#dc3545'],
+                        borderColor: ['#218838', '#138496', '#c82333'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Recepciones'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Bloqueos
+            bloqueosChart = new Chart(document.getElementById('bloqueosChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Puntos', 'Toques'],
+                    datasets: [{
+                        label: 'Bloqueos',
+                        data: [data.bloqueos_puntos, data.bloqueos_toques],
+                        backgroundColor: ['#28a745', '#17a2b8'],
+                        borderColor: ['#218838', '#138496'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Bloqueos'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Defensas
+            defensasChart = new Chart(document.getElementById('defensasChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Levantadas', 'Errores'],
+                    datasets: [{
+                        label: 'Defensas',
+                        data: [data.defensas_levantadas, data.defensas_fallidas],
+                        backgroundColor: ['#28a745', '#dc3545'],
+                        borderColor: ['#218838', '#c82333'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Defensas'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Asistencias
+            asistenciasChart = new Chart(document.getElementById('asistenciasChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Asistencias', 'Errores'],
+                    datasets: [{
+                        label: 'Asistencias',
+                        data: [data.asistencias, data.asistencias_fallidas],
+                        backgroundColor: ['#28a745', '#dc3545'],
+                        borderColor: ['#218838', '#c82333'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Asistencias'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('statsSummary').innerText = 'Error al cargar estadísticas.';
+            destroyCharts();
+        });
+}
+
+function destroyCharts() {
+    if (saquesChart) saquesChart.destroy();
+    if (ataquesChart) ataquesChart.destroy();
+    if (recepcionesChart) recepcionesChart.destroy();
+    if (bloqueosChart) bloqueosChart.destroy();
+    if (defensasChart) defensasChart.destroy();
+    if (asistenciasChart) asistenciasChart.destroy();
+}
+
+function exportarEstadisticas(format) {
+    const tipo = document.getElementById('tipoEstadisticas').value;
+    const jugador_id = document.getElementById('selectJugador').value;
+    const partido_id = document.getElementById('selectPartido').value;
+    const equipo_id = document.getElementById('selectEquipo').value;
+
+    let body = `tipo=${tipo}`;
+    if (tipo === 'por_partido' && jugador_id && partido_id) {
+        body += `&jugador_id=${jugador_id}&partido_id=${partido_id}`;
+    } else if (tipo === 'generales' && jugador_id) {
+        body += `&jugador_id=${jugador_id}`;
+    } else if (tipo === 'equipo' && equipo_id) {
+        body += `&equipo_id=${equipo_id}`;
+    } else {
+        alert('Por favor selecciona los filtros necesarios.');
+        return;
+    }
+
+    fetch(`/reportes/exportar/${format}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body
+    })
+    .then(response => response.json())
+    .then(data => {
+        window.open(data.url, '_blank');
+    });
+}
+
+actualizarFiltros();
+</script>
+{% endblock %}

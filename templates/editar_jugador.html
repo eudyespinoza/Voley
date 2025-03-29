@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-12 col-md-6 col-lg-4 mx-auto">
+        <h2 class="mb-3">Editar Jugador</h2>
+        <form method="POST" action="{{ url_for('editar_jugador', id=jugador.id) }}">
+            <div class="mb-3">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-control" name="nombre" value="{{ jugador.nombre }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Número</label>
+                <input type="number" class="form-control" name="numero" value="{{ jugador.numero }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Posición</label>
+                <select name="posicion" class="form-control" required>
+                    <option value="Punta" {% if jugador.posicion == "Punta" %}selected{% endif %}>Punta</option>
+                    <option value="Armador" {% if jugador.posicion == "Armador" %}selected{% endif %}>Armador</option>
+                    <option value="Libero" {% if jugador.posicion == "Libero" %}selected{% endif %}>Líbero</option>
+                    <option value="Central" {% if jugador.posicion == "Central" %}selected{% endif %}>Central</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Equipo</label>
+                <select name="equipo" class="form-control" required>
+                    {% for equipo in equipos %}
+                    <option value="{{ equipo.id }}" {% if equipo in jugador.equipos %}selected{% endif %}>{{ equipo.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Altura (m)</label>
+                <input type="number" step="0.01" class="form-control" name="altura" value="{{ jugador.altura or '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Peso (kg)</label>
+                <input type="number" step="0.1" class="form-control" name="peso" value="{{ jugador.peso or '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Mano dominante</label>
+                <select name="mano_dominante" class="form-control">
+                    <option value="">Selecciona</option>
+                    <option value="Diestro" {% if jugador.mano_dominante == "Diestro" %}selected{% endif %}>Diestro</option>
+                    <option value="Zurdo" {% if jugador.mano_dominante == "Zurdo" %}selected{% endif %}>Zurdo</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Grupo sanguíneo</label>
+                <input type="text" class="form-control" name="grupo_sanguineo" value="{{ jugador.grupo_sanguineo or '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Historial de lesiones</label>
+                <textarea class="form-control" name="historial_lesiones">{{ jugador.historial_lesiones or '' }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Guardar</button>
+            <a href="{{ url_for('listar_jugadores') }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

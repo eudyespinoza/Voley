@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    /* Estilo para las cards */
+    .match-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        margin-bottom: 15px;
+        padding: 15px;
+        position: relative;
+        overflow: hidden;
+    }
+    .match-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.15), -5px -5px 20px rgba(255, 255, 255, 0.9);
+    }
+    .match-card h5 {
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #333;
+    }
+    .match-card p {
+        margin: 2px 0;
+        color: #666;
+    }
+    .match-card .estado {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.65rem;
+        font-weight: 500;
+    }
+    .estado.en-curso {
+        background-color: #28a745;
+        color: white;
+    }
+    .estado.finalizado {
+        background-color: #6c757d;
+        color: white;
+    }
+    .match-card .marcador {
+        font-size: 1rem;
+        font-weight: bold;
+        color: #007bff;
+    }
+    .match-card .set-scores {
+        font-size: 0.8rem;
+        color: #333;
+        margin-top: 5px;
+    }
+    /* Ajustes para responsividad */
+    @media (max-width: 576px) {
+        .match-card {
+            padding: 10px;
+        }
+        .match-card h5 {
+            font-size: 0.65rem !important;
+        }
+        .match-card p {
+            font-size: 0.6rem !important;
+        }
+        .match-card .marcador {
+            font-size: 0.8rem;
+        }
+        .match-card .set-scores {
+            font-size: 0.6rem;
+        }
+        .match-card .estado {
+            font-size: 0.55rem;
+            padding: 3px 8px;
+        }
+    }
+</style>
+
+<div class="container mt-3">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2 class="mb-3">Gestión de Partidos</h2>
+            <div class="d-flex justify-content-end mb-3">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#partidoModal">
+                    <i class="bi bi-plus-lg"></i> Nuevo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de partidos en cards -->
+    <div class="row" id="listaPartidos">
+        {% for partido in partidos %}
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="match-card">
+                <span class="estado {% if partido.estado == 'En curso' %}en-curso{% else %}finalizado{% endif %}">
+                    {{ partido.estado }}
+                </span>
+                <h5>{{ partido.fecha.strftime('%Y-%m-%d') }}</h5>
+                <p><strong>Equipo:</strong> {{ partido.equipo.nombre }}</p>
+                <p><strong>Rival:</strong> {{ partido.rival }}</p>
+                <p><strong>Lugar:</strong> {{ 'Local' if partido.es_local else 'Visitante' }}</p>
+                <p><strong>Tipo:</strong> {{ partido.tipo_partido }}</p>
+                <p class="marcador">{{ partido.marcador_local }} - {{ partido.marcador_visitante }}</p>
+                {% if partido.estado == 'Finalizado' and partido.set_scores %}
+                <div class="set-scores">
+                    {% for set_score in partido.set_scores %}
+                    <p>Set {{ set_score.set }}: {{ set_score.local }} - {{ set_score.visitante }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                    <a href="{{ url_for('estadisticas_partido', partido_id=partido.id) }}" class="btn btn-info btn-sm me-2"><i class="bi bi-bar-chart"></i></a>
+                    <button class="btn btn-warning btn-sm me-2" data-bs-toggle="modal" data-bs-target="#editarPartidoModal{{ partido.id }}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="eliminarPartido({{ partido.id }})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de edición -->
+        <div class="modal fade" id="editarPartidoModal{{ partido.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <form method="POST" action="{{ url_for('editar_partido', id=partido.id) }}">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Editar Partido</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="text" class="form-control mb-2" name="rival" value="{{ partido.rival }}" required>
+                            <select class="form-control mb-2" name="equipo" required>
+                                <option value="">Selecciona un equipo</option>
+                                {% for equipo in equipos %}
+                                <option value="{{ equipo.id }}" {% if equipo.id == partido.equipo_id %}selected{% endif %}>{{ equipo.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="mb-2">
+                                <label for="es_local" class="form-label">Lugar del Partido</label>
+                                <select class="form-control" name="es_local" required>
+                                    <option value="local" {% if partido.es_local %}selected{% endif %}>Local</option>
+                                    <option value="visitante" {% if not partido.es_local %}selected{% endif %}>Visitante</option>
+                                </select>
+                            </div>
+                            <div class="mb-2">
+                                <label for="tipo_partido" class="form-label">Tipo de Partido</label>
+                                <select class="form-control" name="tipo_partido" required>
+                                    <option value="Liga" {% if partido.tipo_partido == 'Liga' %}selected{% endif %}>Liga</option>
+                                    <option value="Amistoso" {% if partido.tipo_partido == 'Amistoso' %}selected{% endif %}>Amistoso</option>
+                                    <option value="Torneo" {% if partido.tipo_partido == 'Torneo' %}selected{% endif %}>Torneo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Guardar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal de creación -->
+<div class="modal fade" id="partidoModal">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('crear_partido') }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo Partido</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control mb-2" name="rival" placeholder="Nombre del Rival" required>
+                    <select class="form-control mb-2" name="equipo" required>
+                        <option value="">Selecciona un equipo</option>
+                        {% for equipo in equipos %}
+                        <option value="{{ equipo.id }}">{{ equipo.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="mb-2">
+                        <label for="es_local" class="form-label">Lugar del Partido</label>
+                        <select class="form-control" name="es_local" required>
+                            <option value="local">Local</option>
+                            <option value="visitante">Visitante</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label for="tipo_partido" class="form-label">Tipo de Partido</label>
+                        <select class="form-control" name="tipo_partido" required>
+                            <option value="Liga">Liga</option>
+                            <option value="Amistoso">Amistoso</option>
+                            <option value="Torneo">Torneo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Guardar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function eliminarPartido(id) {
+    if (confirm('¿Estás seguro de que deseas eliminar este partido?')) {
+        fetch(`/partido/eliminar/${id}`, { method: 'POST' })
+        .then(() => location.reload());
+    }
+}
+</script>
+{% endblock %}

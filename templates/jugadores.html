@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    /* Estilo para las cards (mismo estilo que en partidos) */
+    .player-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        margin-bottom: 15px;
+        padding: 15px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 150px; /* Asegurar espacio suficiente para el diseño */
+    }
+    .player-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.15), -5px -5px 20px rgba(255, 255, 255, 0.9);
+    }
+    .player-card h5 {
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #333;
+    }
+    .player-card p {
+        margin: 2px 0;
+        color: #666;
+    }
+    .player-card .numero {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 3rem !important; /* Tamaño grande para el número */
+        font-weight: bold;
+        color: #007bff; /* Color azul vibrante para que resalte */
+        opacity: 0.8;
+    }
+    /* Estilo mejorado para el modal */
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+    }
+    .modal-header {
+        background: linear-gradient(90deg, #007bff, #0056b3);
+        color: white;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        border-bottom: none;
+        padding: 15px 20px;
+    }
+    .modal-header .modal-title {
+        font-weight: 600;
+    }
+    .modal-header .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
+    .modal-body {
+        padding: 20px;
+    }
+    .modal-body p {
+        margin: 8px 0;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 5px;
+    }
+    .modal-body p strong {
+        color: #333;
+        font-weight: 600;
+    }
+    .modal-body p span {
+        color: #666;
+    }
+    .modal-footer {
+        border-top: none;
+        padding: 10px 20px;
+    }
+    .modal-footer .btn-secondary {
+        background-color: #6c757d;
+        border: none;
+        border-radius: 8px;
+        transition: background-color 0.3s;
+    }
+    .modal-footer .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+    /* Ajustes para responsividad */
+    @media (max-width: 576px) {
+        .player-card {
+            padding: 10px;
+            min-height: 120px;
+        }
+        .player-card h5 {
+            font-size: 0.65rem !important;
+        }
+        .player-card p {
+            font-size: 0.6rem !important;
+        }
+        .player-card .numero {
+            font-size: 1.5rem; /* Reducir el tamaño del número en pantallas pequeñas */
+            top: 5px;
+            right: 5px;
+        }
+        .modal-body {
+            padding: 15px;
+        }
+        .modal-body p {
+            font-size: 0.6rem !important;
+        }
+    }
+</style>
+
+<div class="container mt-3">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2 class="mb-3">Gestión de Jugadores</h2>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#jugadorModal">
+                    <i class="bi bi-plus-lg"></i> Nuevo
+                </button>
+                <div class="d-flex gap-2">
+                    <select id="filtroEquipo" class="form-control" style="max-width: 200px;" onchange="filtrarJugadores()">
+                        <option value="">Todos los equipos</option>
+                        {% for equipo in equipos %}
+                        <option value="{{ equipo.id }}">{{ equipo.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" id="busquedaNombre" class="form-control" placeholder="Buscar por nombre" style="max-width: 200px;" onkeyup="filtrarJugadores()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de jugadores en cards -->
+    <div class="row" id="listaJugadores">
+        {% for jugador in jugadores %}
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3 player-card-container" data-jugador-id="{{ jugador.id }}" data-equipo-id="{{ jugador.equipos[0].id if jugador.equipos else '' }}" data-nombre="{{ jugador.nombre|lower }}">
+            <div class="player-card" onclick="mostrarDetallesJugador({{ jugador.id }})">
+                <span class="numero">{{ jugador.numero }}</span>
+                <div>
+                    <h5>{{ jugador.nombre }}</h5>
+                    <p><strong>Equipo:</strong> {{ jugador.equipos[0].nombre if jugador.equipos else 'Sin equipo' }}</p>
+                    <p><strong>Posición:</strong> {{ jugador.posicion }}</p>
+                </div>
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editarJugadorModal{{ jugador.id }}" onclick="event.stopPropagation()">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); eliminarJugador({{ jugador.id }})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de detalles -->
+        <div class="modal fade" id="detallesJugadorModal{{ jugador.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Detalles de {{ jugador.nombre }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Nombre:</strong> <span>{{ jugador.nombre }}</span></p>
+                        <p><strong>Número:</strong> <span>{{ jugador.numero }}</span></p>
+                        <p><strong>Posición:</strong> <span>{{ jugador.posicion }}</span></p>
+                        <p><strong>Equipo:</strong> <span>{{ jugador.equipos[0].nombre if jugador.equipos else 'Sin equipo' }}</span></p>
+                        <p><strong>Altura:</strong> <span>{{ (jugador.altura * 100) | int if jugador.altura else 'N/A' }} cm</span></p>
+                        <p><strong>Peso:</strong> <span>{{ jugador.peso or 'N/A' }} kg</span></p>
+                        <p><strong>Mano dominante:</strong> <span>{{ jugador.mano_dominante or 'N/A' }}</span></p>
+                        <p><strong>Grupo sanguíneo:</strong> <span>{{ jugador.grupo_sanguineo or 'N/A' }}</span></p>
+                        <p><strong>Historial de lesiones:</strong> <span>{{ jugador.historial_lesiones or 'Ninguno' }}</span></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de edición -->
+        <div class="modal fade" id="editarJugadorModal{{ jugador.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <form method="POST" action="{{ url_for('editar_jugador', id=jugador.id) }}">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Editar Jugador</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="text" class="form-control mb-2" name="nombre" value="{{ jugador.nombre }}" required>
+                            <input type="number" class="form-control mb-2" name="numero" value="{{ jugador.numero }}" required>
+                            <select name="posicion" class="form-control mb-2" required>
+                                <option value="Punta" {% if jugador.posicion == "Punta" %}selected{% endif %}>Punta</option>
+                                <option value="Armador" {% if jugador.posicion == "Armador" %}selected{% endif %}>Armador</option>
+                                <option value="Libero" {% if jugador.posicion == "Libero" %}selected{% endif %}>Líbero</option>
+                                <option value="Central" {% if jugador.posicion == "Central" %}selected{% endif %}>Central</option>
+                            </select>
+                            <select name="equipo" class="form-control mb-2" required>
+                                {% for equipo in equipos %}
+                                <option value="{{ equipo.id }}" {% if equipo in jugador.equipos %}selected{% endif %}>{{ equipo.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <input type="number" step="0.01" class="form-control mb-2" name="altura" value="{{ jugador.altura or '' }}" placeholder="Altura (m)">
+                            <input type="number" step="0.1" class="form-control mb-2" name="peso" value="{{ jugador.peso or '' }}" placeholder="Peso (kg)">
+                            <select name="mano_dominante" class="form-control mb-2">
+                                <option value="">Selecciona mano dominante</option>
+                                <option value="Diestro" {% if jugador.mano_dominante == "Diestro" %}selected{% endif %}>Diestro</option>
+                                <option value="Zurdo" {% if jugador.mano_dominante == "Zurdo" %}selected{% endif %}>Zurdo</option>
+                            </select>
+                            <input type="text" class="form-control mb-2" name="grupo_sanguineo" value="{{ jugador.grupo_sanguineo or '' }}" placeholder="Grupo sanguíneo">
+                            <textarea class="form-control mb-2" name="historial_lesiones" placeholder="Historial de lesiones">{{ jugador.historial_lesiones or '' }}</textarea>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Guardar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal de creación -->
+<div class="modal fade" id="jugadorModal">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('crear_jugador') }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo Jugador</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control mb-2" name="nombre" placeholder="Nombre del jugador" required>
+                    <input type="number" class="form-control mb-2" name="numero" placeholder="Número de camiseta" required>
+                    <select name="posicion" class="form-control mb-2" required>
+                        <option value="Punta">Punta</option>
+                        <option value="Armador">Armador</option>
+                        <option value="Libero">Líbero</option>
+                        <option value="Central">Central</option>
+                    </select>
+                    <select name="equipo" class="form-control mb-2" required>
+                        {% for equipo in equipos %}
+                        <option value="{{ equipo.id }}">{{ equipo.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="number" step="0.01" class="form-control mb-2" name="altura" placeholder="Altura (m)">
+                    <input type="number" step="0.1" class="form-control mb-2" name="peso" placeholder="Peso (kg)">
+                    <select name="mano_dominante" class="form-control mb-2">
+                        <option value="">Selecciona mano dominante</option>
+                        <option value="Diestro">Diestro</option>
+                        <option value="Zurdo">Zurdo</option>
+                    </select>
+                    <input type="text" class="form-control mb-2" name="grupo_sanguineo" placeholder="Grupo sanguíneo (ej: A+)">
+                    <textarea class="form-control mb-2" name="historial_lesiones" placeholder="Historial de lesiones"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Guardar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function eliminarJugador(id) {
+    if (confirm('¿Estás seguro de que deseas eliminar este jugador?')) {
+        fetch(`/jugadores/eliminar/${id}`, { method: 'POST' })
+        .then(() => location.reload());
+    }
+}
+
+function mostrarDetallesJugador(id) {
+    const modal = new bootstrap.Modal(document.getElementById(`detallesJugadorModal${id}`));
+    modal.show();
+}
+
+function filtrarJugadores() {
+    const filtroEquipo = document.getElementById('filtroEquipo').value;
+    const busquedaNombre = document.getElementById('busquedaNombre').value.toLowerCase();
+    const cards = document.querySelectorAll('.player-card-container');
+
+    cards.forEach(card => {
+        const equipoId = card.getAttribute('data-equipo-id');
+        const nombre = card.getAttribute('data-nombre');
+        const coincideEquipo = filtroEquipo === '' || equipoId === filtroEquipo;
+        const coincideNombre = busquedaNombre === '' || nombre.includes(busquedaNombre);
+
+        if (coincideEquipo && coincideNombre) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

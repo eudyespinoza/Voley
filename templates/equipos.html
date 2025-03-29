@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    /* Estilo para las cards (mismo estilo que en jugadores y partidos) */
+    .team-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        margin-bottom: 15px;
+        padding: 15px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 120px; /* Asegurar espacio suficiente para el diseño */
+    }
+    .team-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.15), -5px -5px 20px rgba(255, 255, 255, 0.9);
+    }
+    .team-card h5 {
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #333;
+    }
+    /* Estilo para el modal */
+    .modal-content {
+        border-radius: 8px;
+    }
+    .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .modal-body p {
+        margin: 5px 0;
+    }
+    /* Ajustes para responsividad */
+    @media (max-width: 576px) {
+        .team-card {
+            padding: 10px;
+            min-height: 100px;
+        }
+        .team-card h5 {
+            font-size: 0.65rem !important;
+        }
+    }
+</style>
+
+<div class="container mt-3">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2 class="mb-3">Gestión de Equipos</h2>
+            <div class="d-flex justify-content-end mb-3">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#equipoModal">
+                    <i class="bi bi-plus-lg"></i> Nuevo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de equipos en cards -->
+    <div class="row">
+        {% for equipo in equipos %}
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="team-card">
+                <h5>{{ equipo.nombre }}</h5>
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                    <button class="btn btn-warning btn-sm me-2" data-bs-toggle="modal" data-bs-target="#editarEquipoModal{{ equipo.id }}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="eliminarEquipo({{ equipo.id }})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de edición -->
+        <div class="modal fade" id="editarEquipoModal{{ equipo.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <form method="POST" action="{{ url_for('editar_equipo', id=equipo.id) }}">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Editar Equipo</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="text" class="form-control" name="nombre" value="{{ equipo.nombre }}" required>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Guardar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal de creación -->
+<div class="modal fade" id="equipoModal">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('crear_equipo') }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo Equipo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control" name="nombre" placeholder="Nombre del equipo" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Guardar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function eliminarEquipo(id) {
+    if (confirm('¿Estás seguro de que deseas eliminar este equipo?')) {
+        fetch(`/equipos/eliminar/${id}`, { method: 'POST' })
+        .then(() => location.reload());
+    }
+}
+</script>
+{% endblock %}

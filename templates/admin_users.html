@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-3">
+    <h2>Gestión de Usuarios</h2>
+    <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createUserModal">Nuevo Usuario</button>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Admin</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email or 'N/A' }}</td>
+                <td>{{ 'Sí' if user.is_admin else 'No' }}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal{{ user.id }}">Editar</button>
+                    {% if not user.is_admin %}
+                    <button class="btn btn-danger btn-sm" onclick="deleteUser({{ user.id }})">Eliminar</button>
+                    {% endif %}
+                </td>
+            </tr>
+            <!-- Modal de edición -->
+            <div class="modal fade" id="editUserModal{{ user.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <form method="POST" action="{{ url_for('admin_users') }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Editar Usuario</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" name="action" value="edit">
+                                <input type="hidden" name="user_id" value="{{ user.id }}">
+                                <div class="mb-3">
+                                    <label class="form-label">Usuario</label>
+                                    <input type="text" class="form-control" name="username" value="{{ user.username }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" name="email" value="{{ user.email or '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Nueva Contraseña (opcional)</label>
+                                    <input type="password" class="form-control" name="password">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-success">Guardar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal de creación -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('admin_users') }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="create">
+                    <div class="mb-3">
+                        <label class="form-label">Usuario</label>
+                        <input type="text" class="form-control" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Crear</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function deleteUser(id) {
+    if (confirm('¿Estás seguro de eliminar este usuario?')) {
+        fetch('{{ url_for("admin_users") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `action=delete&user_id=${id}`
+        }).then(() => location.reload());
+    }
+}
+</script>
+{% endblock %}

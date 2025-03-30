@@ -11,7 +11,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        flex-direction: column; /* Stack the score-display and previous-sets vertically */
+        flex-direction: column;
     }
 
     .score-display {
@@ -33,26 +33,26 @@
     }
 
     .local-team {
-        background-color: #1e90ff; /* Blue for local team */
+        background-color: #1e90ff;
     }
 
     .visitor-team {
-        background-color: #ff4500; /* Red for visitor team */
+        background-color: #ff4500;
     }
 
     .team-score h4 {
-        font-size: 0.7rem; /* Reduced font size for team names */
+        font-size: 0.9rem;
         margin-bottom: 5px;
         color: white;
         text-transform: uppercase;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        max-width: 100%; /* Ensure it doesn't overflow the container */
+        max-width: 100%;
     }
 
     .team-score span {
-        font-size: 2.5rem !important;
+        font-size: 2.5rem;
         font-weight: bold;
         color: white;
     }
@@ -67,27 +67,28 @@
     }
 
     .set-info h5 {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
         color: #333;
         margin-bottom: 5px;
     }
 
     .set-info span {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
         font-weight: bold;
         color: #333;
     }
 
     .score-controls {
         display: flex;
+        flex-direction: row; /* Botones del marcador uno al lado del otro */
         justify-content: center;
-        align-items: center; /* Vertically center the buttons */
-        gap: 5px;
-        margin-top: 5px;
+        align-items: center;
+        gap: 15px; /* Separación horizontal entre botones */
+        margin-top: 10px;
     }
 
     .previous-sets {
-        margin-top: 15px; /* Increased for better spacing */
+        margin-top: 15px;
         display: flex;
         justify-content: center;
         gap: 20px;
@@ -104,20 +105,21 @@
     /* Estilo para los selectores de jugadores */
     .player-selector-container {
         display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-        justify-content: center;
+        flex-wrap: nowrap; /* Siempre en una línea */
+        overflow-x: auto; /* Scroll horizontal en móviles */
+        gap: 10px;
+        justify-content: flex-start;
+        padding-bottom: 10px; /* Espacio para el scroll */
     }
 
     .player-selector-card {
         background: linear-gradient(145deg, #ffffff, #f0f0f0);
         box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
         border-radius: 8px;
-        padding: 5px;
+        padding: 8px;
         transition: transform 0.2s, box-shadow 0.2s;
-        flex: 1 1 calc(7.14% - 5px); /* 14 por línea: 100% / 14 ≈ 7.14% */
-        min-width: calc(14.28% - 5px); /* Mínimo 7 por línea en pantallas medianas */
-        max-width: calc(50% - 5px); /* Máximo 2 por línea en pantallas pequeñas */
+        flex: 0 0 120px; /* Tamaño fijo para mantener en una línea */
+        min-width: 120px; /* Mínimo ancho para legibilidad */
         box-sizing: border-box;
     }
 
@@ -127,28 +129,27 @@
 
     .player-selector-card.selected {
         background: linear-gradient(145deg, #eebf06, rgba(234, 203, 55, 0.71));
-        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.15), -5px -5px 20px rgba(255, 255, 255, 0.9);
     }
 
     .player-selector-card label {
         color: #333;
         margin-bottom: 3px;
         display: block;
-        font-size: 0.6rem !important;
+        font-size: 0.8rem;
         text-align: center;
     }
 
     .player-selector-card select {
-        font-size: 0.55rem !important;
-        padding: 2px;
-        height: 22px;
+        font-size: 0.8rem;
+        padding: 4px;
+        height: 28px;
         width: 100%;
     }
 
     .player-selector-card button {
-        font-size: 0.55rem !important;
-        padding: 2px 5px;
-        margin-top: 3px;
+        font-size: 0.7rem;
+        padding: 4px 8px;
+        margin-top: 5px;
         width: 100%;
     }
 
@@ -163,7 +164,7 @@
         border: none;
         border-radius: 8px 8px 0 0;
         transition: background-color 0.3s, color 0.3s;
-        font-size: 0.65rem !important;
+        font-size: 0.75rem;
     }
 
     .nav-tabs .nav-link:hover {
@@ -195,40 +196,43 @@
     }
 
     .tab-content .player-info .player-name {
-        font-size: 0.65rem;
+        font-size: 0.75rem;
         color: #333;
         margin-bottom: 5px;
     }
 
     .tab-content .player-info .player-number {
-        font-size: 3.5rem;
+        font-size: 3rem;
         font-weight: bold;
         color: #007bff;
         line-height: 1;
-        display: block !important;
     }
 
     .tab-pane .d-flex {
         gap: 20px;
     }
 
-    .tab-pane span {
-        color: #333;
+    /* Estilo para los botones dentro de las pestañas */
+    .stat-controls {
+        display: flex;
+        flex-direction: column; /* Botones uno encima del otro */
+        gap: 8px; /* Separación vertical */
+        align-items: center;
     }
 
     /* Estilo moderno para los botones de + y - */
     .btn-circle {
-        width: 20px;
-        height: 20px;
+        width: 35px; /* Botones más grandes */
+        height: 35px;
         padding: 0;
         border-radius: 50%;
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 0.6rem;
+        font-size: 1rem; /* Iconos más grandes */
         transition: transform 0.2s, box-shadow 0.2s;
         border: none;
-        line-height: 20px; /* Ensure the icon is centered vertically */
+        line-height: 35px;
     }
 
     .btn-circle:hover {
@@ -270,18 +274,20 @@
 
     .summary-notes p {
         color: #666;
+        font-size: 0.85rem;
+        line-height: 1.4;
     }
 
     .summary-notes textarea {
         border-radius: 8px;
         border: 1px solid #e0e0e0;
-        font-size: 0.7rem !important;
+        font-size: 0.8rem;
     }
 
     /* Estilo para los botones secundarios */
     .action-buttons button {
         padding: 8px 15px;
-        font-size: 0.7rem;
+        font-size: 0.8rem;
         border-radius: 8px;
         transition: background-color 0.3s;
         margin-top: 10px;
@@ -333,74 +339,93 @@
     }
 
     /* Ajustes para responsividad */
-    @media (max-width: 576px) {
-        .score-area {
-            padding: 10px;
-        }
-
+    @media (max-width: 768px) { /* Tablets y móviles */
         .team-score {
             width: 100px;
             height: 100px;
         }
 
         .team-score h4 {
-            font-size: 0.6rem; /* Even smaller for mobile */
-        }
-
-        .team-score span {
-            font-size: 2rem !important;
-        }
-
-        .set-info h5 {
             font-size: 0.7rem;
         }
 
+        .team-score span {
+            font-size: 2rem;
+        }
+
+        .set-info h5 {
+            font-size: 0.8rem;
+        }
+
         .set-info span {
-            font-size: 1rem;
+            font-size: 1.1rem;
         }
 
-        .player-selector-card {
-            padding: 3px;
-        }
-
-        .player-selector-card label {
-            font-size: 0.5rem !important;
-            margin-bottom: 2px;
-        }
-
-        .player-selector-card select {
-            font-size: 0.5rem !important;
-            padding: 1px;
-            height: 20px;
-        }
-
-        .player-selector-card button {
-            font-size: 0.5rem !important;
-            padding: 1px 3px;
-            margin-top: 2px;
-        }
-
-        .tab-content {
-            padding: 10px;
-        }
-
-        .tab-pane .d-flex {
-            gap: 10px;
+        .score-controls {
+            gap: 10px; /* Separación ajustada para móviles */
         }
 
         .btn-circle {
-            width: 18px;
-            height: 18px;
-            font-size: 0.5rem;
+            width: 30px; /* Tamaño ajustado para móviles */
+            height: 30px;
+            font-size: 0.9rem;
         }
 
-        .summary-notes {
+        .player-selector-card {
+            flex: 0 0 100px; /* Menor tamaño en móviles */
+            min-width: 100px;
+        }
+
+        .player-selector-card label {
+            font-size: 0.7rem;
+        }
+
+        .player-selector-card select {
+            font-size: 0.7rem;
+            height: 25px;
+        }
+
+        .player-selector-card button {
+            font-size: 0.6rem;
+            padding: 3px 6px;
+        }
+
+        .stat-controls {
+            gap: 6px; /* Menor separación en móviles */
+        }
+    }
+
+    @media (max-width: 576px) { /* Móviles pequeños */
+        .score-area {
             padding: 10px;
         }
 
-        .action-buttons button {
-            padding: 5px 10px;
+        .team-score {
+            width: 90px;
+            height: 90px;
+        }
+
+        .team-score h4 {
             font-size: 0.6rem;
+        }
+
+        .team-score span {
+            font-size: 1.8rem;
+        }
+
+        .btn-circle {
+            width: 28px;
+            height: 28px;
+            font-size: 0.8rem;
+        }
+
+        .player-selector-container {
+            gap: 8px;
+        }
+
+        .player-selector-card {
+            flex: 0 0 90px;
+            min-width: 90px;
         }
     }
 </style>
@@ -496,13 +521,17 @@
                     <div class="d-flex flex-wrap gap-3">
                         <div>
                             <span>Ace: <span id="saques_ace">0</span></span>
-                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'saques_ace', 'increment')"><i class="bi bi-plus"></i></button>
-                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'saques_ace', 'decrement')"><i class="bi bi-dash"></i></button>
+                            <div class="stat-controls">
+                                <button class="btn-circle success" onclick="updateStat(selectedPlayer, 'saques_ace', 'increment')"><i class="bi bi-plus"></i></button>
+                                <button class="btn-circle danger" onclick="updateStat(selectedPlayer, 'saques_ace', 'decrement')"><i class="bi bi-dash"></i></button>
+                            </div>
                         </div>
                         <div>
                             <span>Error: <span id="saques_fallidos">0</span></span>
-                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'saques_fallidos', 'increment')"><i class="bi bi-plus"></i></button>
-                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'saques_fallidos', 'decrement')"><i class="bi bi-dash"></i></button>
+                            <div class="stat-controls">
+                                <button class="btn-circle success" onclick="updateStat(selectedPlayer, 'saques_fallidos', 'increment')"><i class="bi bi-plus"></i></button>
+                                <button class="btn-circle danger" onclick="updateStat(selectedPlayer, 'saques_fallidos', 'decrement')"><i class="bi bi-dash"></i></button>
+                            </div>
                         </div>
                         <div>
                             <span>Total: <span id="saques_totales">0</span></span>
@@ -513,18 +542,24 @@
                     <div class="d-flex flex-wrap gap-3">
                         <div>
                             <span>Puntos: <span id="ataques_puntos">0</span></span>
-                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'ataques_puntos', 'increment')"><i class="bi bi-plus"></i></button>
-                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'ataques_puntos', 'decrement')"><i class="bi bi-dash"></i></button>
+                            <div class="stat-controls">
+                                <button class="btn-circle success" onclick="updateStat(selectedPlayer, 'ataques_puntos', 'increment')"><i class="bi bi-plus"></i></button>
+                                <button class="btn-circle danger" onclick="updateStat(selectedPlayer, 'ataques_puntos', 'decrement')"><i class="bi bi-dash"></i></button>
+                            </div>
                         </div>
                         <div>
                             <span>Error: <span id="ataques_fallidos">0</span></span>
-                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'ataques_fallidos', 'increment')"><i class="bi bi-plus"></i></button>
-                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'ataques_fallidos', 'decrement')"><i class="bi bi-dash"></i></button>
+                            <div class="stat-controls">
+                                <button class="btn-circle success" onclick="updateStat(selectedPlayer, 'ataques_fallidos', 'increment')"><i class="bi bi-plus"></i></button>
+                                <button class="btn-circle danger" onclick="updateStat(selectedPlayer, 'ataques_fallidos', 'decrement')"><i class="bi bi-dash"></i></button>
+                            </div>
                         </div>
                         <div>
                             <span>Bloqueado: <span id="ataques_bloqueados">0</span></span>
-                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'ataques_bloqueados', 'increment')"><i class="bi bi-plus"></i></button>
-                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'ataques_bloqueados', 'decrement')"><i class="bi bi-dash"></i></button>
+                            <div class="stat-controls">
+                                <button class="btn-circle success" onclick="updateStat(selectedPlayer, 'ataques_bloqueados', 'increment')"><i class="bi bi-plus"></i></button>
+                                <button class="btn-circle danger" onclick="updateStat(selectedPlayer, 'ataques_bloqueados', 'decrement')"><i class="bi bi-dash"></i></button>
+                            </div>
                         </div>
                         <div>
                             <span>Efectividad: <span id="efectividad_ataque">0%</span></span>
@@ -535,18 +570,24 @@
                     <div class="d-flex flex-wrap gap-3">
                         <div>
                             <span>Perfectas: <span id="recepciones_perfectas">0</span></span>
-                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'recepciones_perfectas', 'increment')"><i class="bi bi-plus"></i></button>
-                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'recepciones_perfectas', 'decrement')"><i class="bi bi-dash"></i></button>
+                            <div class="stat-controls">
+                                <button class="btn-circle success" onclick="updateStat(selectedPlayer, 'recepciones_perfectas', 'increment')"><i class="bi bi-plus"></i></button>
+                                <button class="btn-circle danger" onclick="updateStat(selectedPlayer, 'recepciones_perfectas', 'decrement')"><i class="bi bi-dash"></i></button>
+                            </div>
                         </div>
                         <div>
                             <span>Positivas: <span id="recepciones_positivas">0</span></span>
-                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'recepciones_positivas', 'increment')"><i class="bi bi-plus"></i></button>
-                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'recepciones_positivas', 'decrement')"><i class="bi bi-dash"></i></button>
+                            <div class="stat-controls">
+                                <button class="btn-circle success" onclick="updateStat(selectedPlayer, 'recepciones_positivas', 'increment')"><i class="bi bi-plus"></i></button>
+                                <button class="btn-circle danger" onclick="updateStat(selectedPlayer, 'recepciones_positivas', 'decrement')"><i class="bi bi-dash"></i></button>
+                            </div>
                         </div>
                         <div>
                             <span>Errores: <span id="recepciones_fallidas">0</span></span>
-                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'recepciones_fallidas', 'increment')"><i class="bi bi-plus"></i></button>
-                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'recepciones_fallidas', 'decrement')"><i class="bi bi-dash"></i></button>
+                            <div class="stat-controls">
+                                <button class="btn-circle success" onclick="updateStat(selectedPlayer, 'recepciones_fallidas', 'increment')"><i class="bi bi-plus"></i></button>
+                                <button class="btn-circle danger" onclick="updateStat(selectedPlayer, 'recepciones_fallidas', 'decrement')"><i class="bi bi-dash"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -554,13 +595,17 @@
                     <div class="d-flex flex-wrap gap-3">
                         <div>
                             <span>Puntos: <span id="bloqueos_puntos">0</span></span>
-                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'bloqueos_puntos', 'increment')"><i class="bi bi-plus"></i></button>
-                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'bloqueos_puntos', 'decrement')"><i class="bi bi-dash"></i></button>
+                            <div class="stat-controls">
+                                <button class="btn-circle success" onclick="updateStat(selectedPlayer, 'bloqueos_puntos', 'increment')"><i class="bi bi-plus"></i></button>
+                                <button class="btn-circle danger" onclick="updateStat(selectedPlayer, 'bloqueos_puntos', 'decrement')"><i class="bi bi-dash"></i></button>
+                            </div>
                         </div>
                         <div>
                             <span>Toques: <span id="bloqueos_toques">0</span></span>
-                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'bloqueos_toques', 'increment')"><i class="bi bi-plus"></i></button>
-                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'bloqueos_toques', 'decrement')"><i class="bi bi-dash"></i></button>
+                            <div class="stat-controls">
+                                <button class="btn-circle success" onclick="updateStat(selectedPlayer, 'bloqueos_toques', 'increment')"><i class="bi bi-plus"></i></button>
+                                <button class="btn-circle danger" onclick="updateStat(selectedPlayer, 'bloqueos_toques', 'decrement')"><i class="bi bi-dash"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -568,13 +613,17 @@
                     <div class="d-flex flex-wrap gap-3">
                         <div>
                             <span>Levantadas: <span id="defensas_levantadas">0</span></span>
-                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'defensas_levantadas', 'increment')"><i class="bi bi-plus"></i></button>
-                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'defensas_levantadas', 'decrement')"><i class="bi bi-dash"></i></button>
+                            <div class="stat-controls">
+                                <button class="btn-circle success" onclick="updateStat(selectedPlayer, 'defensas_levantadas', 'increment')"><i class="bi bi-plus"></i></button>
+                                <button class="btn-circle danger" onclick="updateStat(selectedPlayer, 'defensas_levantadas', 'decrement')"><i class="bi bi-dash"></i></button>
+                            </div>
                         </div>
                         <div>
                             <span>Errores: <span id="defensas_fallidas">0</span></span>
-                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'defensas_fallidas', 'increment')"><i class="bi bi-plus"></i></button>
-                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'defensas_fallidas', 'decrement')"><i class="bi bi-dash"></i></button>
+                            <div class="stat-controls">
+                                <button class="btn-circle success" onclick="updateStat(selectedPlayer, 'defensas_fallidas', 'increment')"><i class="bi bi-plus"></i></button>
+                                <button class="btn-circle danger" onclick="updateStat(selectedPlayer, 'defensas_fallidas', 'decrement')"><i class="bi bi-dash"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -582,13 +631,17 @@
                     <div class="d-flex flex-wrap gap-3">
                         <div>
                             <span>Asistencias: <span id="asistencias">0</span></span>
-                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'asistencias', 'increment')"><i class="bi bi-plus"></i></button>
-                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'asistencias', 'decrement')"><i class="bi bi-dash"></i></button>
+                            <div class="stat-controls">
+                                <button class="btn-circle success" onclick="updateStat(selectedPlayer, 'asistencias', 'increment')"><i class="bi bi-plus"></i></button>
+                                <button class="btn-circle danger" onclick="updateStat(selectedPlayer, 'asistencias', 'decrement')"><i class="bi bi-dash"></i></button>
+                            </div>
                         </div>
                         <div>
                             <span>Errores: <span id="asistencias_fallidas">0</span></span>
-                            <button class="btn-circle success ms-2" onclick="updateStat(selectedPlayer, 'asistencias_fallidas', 'increment')"><i class="bi bi-plus"></i></button>
-                            <button class="btn-circle danger ms-2" onclick="updateStat(selectedPlayer, 'asistencias_fallidas', 'decrement')"><i class="bi bi-dash"></i></button>
+                            <div class="stat-controls">
+                                <button class="btn-circle success" onclick="updateStat(selectedPlayer, 'asistencias_fallidas', 'increment')"><i class="bi bi-plus"></i></button>
+                                <button class="btn-circle danger" onclick="updateStat(selectedPlayer, 'asistencias_fallidas', 'decrement')"><i class="bi bi-dash"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -644,9 +697,9 @@ function selectPlayerFromPosition(posicion) {
         const selectedOption = select.options[select.selectedIndex];
         const playerName = selectedOption.text.split(' (')[0]; // Extraer solo el nombre
         const playerNumber = selectedOption.getAttribute('data-numero') || 'N/A'; // Valor por defecto si no hay número
-        console.log('Nombre:', playerName, 'Número:', playerNumber); // Depuración
+        console.log('Jugador seleccionado:', { jugador_id: selectedPlayer, posicion: selectedPosition, nombre: playerName, numero: playerNumber }); // Depuración
         document.getElementById('selectedPlayerName').innerText = playerName;
-        document.getElementById('selectedPlayerNumber').innerText = playerNumber; // Asegurar que se muestre
+        document.getElementById('selectedPlayerNumber').innerText = playerNumber;
         loadPlayerStats(selectedPlayer);
         updateResumen(selectedPlayer);
     } else {
@@ -661,28 +714,37 @@ function selectPlayerFromPosition(posicion) {
 }
 
 function loadPlayerStats(jugador_id) {
+    console.log('Cargando estadísticas para el jugador:', jugador_id); // Depuración
     fetch(`/api/estadisticas?tipo=por_partido&jugador_id=${jugador_id}&partido_id={{ partido.id }}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta de la API: ' + response.statusText);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Datos recibidos:', data); // Depuración
             if (data.error) {
+                console.error('Error en los datos:', data.error);
                 resetStatsDisplay();
             } else {
-                document.getElementById('saques_ace').innerText = data.saques_ace;
-                document.getElementById('saques_fallidos').innerText = data.saques_fallidos;
-                document.getElementById('saques_totales').innerText = data.saques_totales;
-                document.getElementById('ataques_puntos').innerText = data.ataques_puntos;
-                document.getElementById('ataques_fallidos').innerText = data.ataques_fallidos;
-                document.getElementById('ataques_bloqueados').innerText = data.ataques_bloqueados;
-                document.getElementById('efectividad_ataque').innerText = data.efectividad_ataque.toFixed(2) + '%';
-                document.getElementById('recepciones_perfectas').innerText = data.recepciones_perfectas;
-                document.getElementById('recepciones_positivas').innerText = data.recepciones_positivas;
-                document.getElementById('recepciones_fallidas').innerText = data.recepciones_fallidas;
-                document.getElementById('bloqueos_puntos').innerText = data.bloqueos_puntos;
-                document.getElementById('bloqueos_toques').innerText = data.bloqueos_toques;
-                document.getElementById('defensas_levantadas').innerText = data.defensas_levantadas;
-                document.getElementById('defensas_fallidas').innerText = data.defensas_fallidas;
-                document.getElementById('asistencias').innerText = data.asistencias;
-                document.getElementById('asistencias_fallidas').innerText = data.asistencias_fallidas;
+                document.getElementById('saques_ace').innerText = data.saques_ace || 0;
+                document.getElementById('saques_fallidos').innerText = data.saques_fallidos || 0;
+                document.getElementById('saques_totales').innerText = data.saques_totales || 0;
+                document.getElementById('ataques_puntos').innerText = data.ataques_puntos || 0;
+                document.getElementById('ataques_fallidos').innerText = data.ataques_fallidos || 0;
+                document.getElementById('ataques_bloqueados').innerText = data.ataques_bloqueados || 0;
+                document.getElementById('efectividad_ataque').innerText = (data.efectividad_ataque || 0).toFixed(2) + '%';
+                document.getElementById('recepciones_perfectas').innerText = data.recepciones_perfectas || 0;
+                document.getElementById('recepciones_positivas').innerText = data.recepciones_positivas || 0;
+                document.getElementById('recepciones_fallidas').innerText = data.recepciones_fallidas || 0;
+                document.getElementById('bloqueos_puntos').innerText = data.bloqueos_puntos || 0;
+                document.getElementById('bloqueos_toques').innerText = data.bloqueos_toques || 0;
+                document.getElementById('defensas_levantadas').innerText = data.defensas_levantadas || 0;
+                document.getElementById('defensas_fallidas').innerText = data.defensas_fallidas || 0;
+                document.getElementById('asistencias').innerText = data.asistencias || 0;
+                document.getElementById('asistencias_fallidas').innerText = data.asistencias_fallidas || 0;
+                updateResumen(jugador_id); // Actualizar el resumen después de cargar las estadísticas
             }
         })
         .catch(error => {
@@ -692,6 +754,7 @@ function loadPlayerStats(jugador_id) {
 }
 
 function resetStatsDisplay() {
+    console.log('Restableciendo estadísticas a 0'); // Depuración
     document.getElementById('saques_ace').innerText = '0';
     document.getElementById('saques_fallidos').innerText = '0';
     document.getElementById('saques_totales').innerText = '0';
@@ -711,18 +774,24 @@ function resetStatsDisplay() {
 }
 
 function updateStat(jugador_id, stat, action) {
-    if (!jugador_id) return alert('Selecciona un jugador primero.');
+    if (!jugador_id) {
+        alert('Selecciona un jugador primero.');
+        return;
+    }
+    console.log('Actualizando estadística:', { jugador_id, stat, action }); // Depuración
     socket.emit('update_stat', { partido_id: {{ partido.id }}, jugador_id: jugador_id, stat: stat, action: action });
     lastAction = { jugador_id, stat, action };
 }
 
 function rotatePositions() {
+    console.log('Rotando posiciones'); // Depuración
     socket.emit('rotate_positions', { partido_id: {{ partido.id }} });
 }
 
 function undoLastAction() {
     if (!lastAction) return;
     const oppositeAction = lastAction.action === 'increment' ? 'decrement' : 'increment';
+    console.log('Deshaciendo acción:', { ...lastAction, oppositeAction }); // Depuración
     socket.emit('update_stat', { partido_id: {{ partido.id }}, jugador_id: lastAction.jugador_id, stat: lastAction.stat, action: oppositeAction });
     lastAction = null;
 }
@@ -899,7 +968,16 @@ function grabarJuego() {
 
 function updateResumen(jugador_id) {
     if (!jugador_id) return;
-    const resumen = `Jugador #${jugador_id}: Saques ${document.getElementById('saques_totales').innerText}, Ataques ${document.getElementById('ataques_puntos').innerText}/${document.getElementById('ataques_totales') ? document.getElementById('ataques_totales').innerText : '0'}`;
+    const playerName = document.getElementById('selectedPlayerName').innerText;
+    const resumen = `
+${playerName}:
+- Saque: Ace ${document.getElementById('saques_ace').innerText}, Errores ${document.getElementById('saques_fallidos').innerText}, Total ${document.getElementById('saques_totales').innerText}
+- Ataque: Puntos ${document.getElementById('ataques_puntos').innerText}, Errores ${document.getElementById('ataques_fallidos').innerText}, Bloqueados ${document.getElementById('ataques_bloqueados').innerText}, Efectividad ${document.getElementById('efectividad_ataque').innerText}
+- Recepción: Perfectas ${document.getElementById('recepciones_perfectas').innerText}, Positivas ${document.getElementById('recepciones_positivas').innerText}, Errores ${document.getElementById('recepciones_fallidas').innerText}
+- Bloqueo: Puntos ${document.getElementById('bloqueos_puntos').innerText}, Toques ${document.getElementById('bloqueos_toques').innerText}
+- Defensa: Levantadas ${document.getElementById('defensas_levantadas').innerText}, Errores ${document.getElementById('defensas_fallidas').innerText}
+- Asistencia: Asistencias ${document.getElementById('asistencias').innerText}, Errores ${document.getElementById('asistencias_fallidas').innerText}
+    `;
     document.getElementById('resumenJugador').innerText = resumen;
 }
 
@@ -909,32 +987,35 @@ document.getElementById('setNumber').innerText = currentSet;
 displayPreviousSets();
 
 socket.on('stat_updated', function(data) {
+    console.log('Evento stat_updated recibido:', data); // Depuración
     if (data.jugador_id === selectedPlayer) {
         document.getElementById(`${data.stat}`).innerText = data.value;
         if (data.stat.startsWith('saques_')) {
-            document.getElementById('saques_totales').innerText = data.saques_totales;
+            document.getElementById('saques_totales').innerText = data.saques_totales || 0;
         } else if (data.stat.startsWith('ataques_')) {
-            document.getElementById('efectividad_ataque').innerText = data.efectividad_ataque.toFixed(2) + '%';
+            document.getElementById('efectividad_ataque').innerText = (data.efectividad_ataque || 0).toFixed(2) + '%';
         }
-        document.getElementById('recepciones_perfectas').innerText = data.recepciones_perfectas;
-        document.getElementById('recepciones_positivas').innerText = data.recepciones_positivas;
-        document.getElementById('recepciones_fallidas').innerText = data.recepciones_fallidas;
-        document.getElementById('bloqueos_puntos').innerText = data.bloqueos_puntos;
-        document.getElementById('bloqueos_toques').innerText = data.bloqueos_toques;
-        document.getElementById('defensas_levantadas').innerText = data.defensas_levantadas;
-        document.getElementById('defensas_fallidas').innerText = data.defensas_fallidas;
-        document.getElementById('asistencias').innerText = data.asistencias;
-        document.getElementById('asistencias_fallidas').innerText = data.asistencias_fallidas;
+        document.getElementById('recepciones_perfectas').innerText = data.recepciones_perfectas || 0;
+        document.getElementById('recepciones_positivas').innerText = data.recepciones_positivas || 0;
+        document.getElementById('recepciones_fallidas').innerText = data.recepciones_fallidas || 0;
+        document.getElementById('bloqueos_puntos').innerText = data.bloqueos_puntos || 0;
+        document.getElementById('bloqueos_toques').innerText = data.bloqueos_toques || 0;
+        document.getElementById('defensas_levantadas').innerText = data.defensas_levantadas || 0;
+        document.getElementById('defensas_fallidas').innerText = data.defensas_fallidas || 0;
+        document.getElementById('asistencias').innerText = data.asistencias || 0;
+        document.getElementById('asistencias_fallidas').innerText = data.asistencias_fallidas || 0;
         updateResumen(data.jugador_id);
     }
 });
 
 socket.on('score_updated', function(data) {
+    console.log('Evento score_updated recibido:', data); // Depuración
     document.getElementById('scoreLocal').innerText = data.scoreLocal;
     document.getElementById('scoreVisitante').innerText = data.scoreVisitante;
 });
 
 socket.on('titulares_updated', function(data) {
+    console.log('Evento titulares_updated recibido:', data); // Depuración
     const titulares = data.titulares;
     document.getElementById(`titulares_${data.partido_id}`).innerHTML = titulares.map(id => {
         const jugador = {{ jugadores|tojson }}.find(j => j.id === id);
@@ -959,6 +1040,7 @@ socket.on('titulares_updated', function(data) {
 });
 
 socket.on('positions_rotated', function(data) {
+    console.log('Evento positions_rotated recibido:', data); // Depuración
     const posiciones = data.posiciones;
     for (let pos = 1; pos <= 7; pos++) {
         const select = document.getElementById(`posicion_${pos}`);
@@ -982,6 +1064,7 @@ socket.on('positions_rotated', function(data) {
 });
 
 socket.on('titulares_error', function(data) {
+    console.log('Evento titulares_error recibido:', data); // Depuración
     alert(data.message);
 });
 </script>

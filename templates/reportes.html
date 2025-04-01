@@ -54,13 +54,6 @@
         border-radius: 8px;
         transition: background-color 0.3s;
     }
-    .export-buttons .btn-success {
-        background-color: #28a745;
-        border: none;
-    }
-    .export-buttons .btn-success:hover {
-        background-color: #218838;
-    }
     .export-buttons .btn-danger {
         background-color: #dc3545;
         border: none;
@@ -163,10 +156,7 @@
             </div>
         </div>
         <div class="text-center export-buttons">
-            <button class="btn btn-success me-2" onclick="exportarEstadisticas('excel')">
-                <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
-            </button>
-            <button class="btn btn-danger" onclick="exportarEstadisticas('pdf')">
+            <button class="btn btn-danger" onclick="exportarEstadisticas()">
                 <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
             </button>
         </div>
@@ -224,14 +214,11 @@ function cargarEstadisticas() {
                 return;
             }
 
-            // Actualizar el título y el resumen
             document.getElementById('statsTitle').innerText = tipo === 'equipo' ? `Estadísticas del Equipo: ${data.equipo}` : `Estadísticas de ${data.jugador}${tipo === 'por_partido' ? ' vs ' + data.partido : ''}`;
             document.getElementById('statsSummary').innerText = `Efectividad de Ataque: ${data.efectividad_ataque.toFixed(2)}% | Total Saques: ${data.saques_totales} | Total Ataques: ${data.ataques_totales}`;
 
-            // Destruir gráficos anteriores si existen
             destroyCharts();
 
-            // Gráfico de Saques
             saquesChart = new Chart(document.getElementById('saquesChart').getContext('2d'), {
                 type: 'bar',
                 data: {
@@ -248,29 +235,13 @@ function cargarEstadisticas() {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Cantidad'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Saques'
-                            }
-                        }
+                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad' } },
+                        x: { title: { display: true, text: 'Saques' } }
                     },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
+                    plugins: { legend: { display: false } }
                 }
             });
 
-            // Gráfico de Ataques
             ataquesChart = new Chart(document.getElementById('ataquesChart').getContext('2d'), {
                 type: 'bar',
                 data: {
@@ -287,29 +258,13 @@ function cargarEstadisticas() {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Cantidad'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Ataques'
-                            }
-                        }
+                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad' } },
+                        x: { title: { display: true, text: 'Ataques' } }
                     },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
+                    plugins: { legend: { display: false } }
                 }
             });
 
-            // Gráfico de Recepciones
             recepcionesChart = new Chart(document.getElementById('recepcionesChart').getContext('2d'), {
                 type: 'bar',
                 data: {
@@ -326,29 +281,13 @@ function cargarEstadisticas() {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Cantidad'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Recepciones'
-                            }
-                        }
+                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad' } },
+                        x: { title: { display: true, text: 'Recepciones' } }
                     },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
+                    plugins: { legend: { display: false } }
                 }
             });
 
-            // Gráfico de Bloqueos
             bloqueosChart = new Chart(document.getElementById('bloqueosChart').getContext('2d'), {
                 type: 'bar',
                 data: {
@@ -365,29 +304,13 @@ function cargarEstadisticas() {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Cantidad'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Bloqueos'
-                            }
-                        }
+                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad' } },
+                        x: { title: { display: true, text: 'Bloqueos' } }
                     },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
+                    plugins: { legend: { display: false } }
                 }
             });
 
-            // Gráfico de Defensas
             defensasChart = new Chart(document.getElementById('defensasChart').getContext('2d'), {
                 type: 'bar',
                 data: {
@@ -404,29 +327,13 @@ function cargarEstadisticas() {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Cantidad'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Defensas'
-                            }
-                        }
+                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad' } },
+                        x: { title: { display: true, text: 'Defensas' } }
                     },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
+                    plugins: { legend: { display: false } }
                 }
             });
 
-            // Gráfico de Asistencias
             asistenciasChart = new Chart(document.getElementById('asistenciasChart').getContext('2d'), {
                 type: 'bar',
                 data: {
@@ -443,25 +350,10 @@ function cargarEstadisticas() {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Cantidad'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Asistencias'
-                            }
-                        }
+                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad' } },
+                        x: { title: { display: true, text: 'Asistencias' } }
                     },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
+                    plugins: { legend: { display: false } }
                 }
             });
         })
@@ -481,32 +373,69 @@ function destroyCharts() {
     if (asistenciasChart) asistenciasChart.destroy();
 }
 
-function exportarEstadisticas(format) {
+function exportarEstadisticas() {
     const tipo = document.getElementById('tipoEstadisticas').value;
     const jugador_id = document.getElementById('selectJugador').value;
     const partido_id = document.getElementById('selectPartido').value;
     const equipo_id = document.getElementById('selectEquipo').value;
 
     let body = `tipo=${tipo}`;
-    if (tipo === 'por_partido' && jugador_id && partido_id) {
-        body += `&jugador_id=${jugador_id}&partido_id=${partido_id}`;
-    } else if (tipo === 'generales' && jugador_id) {
-        body += `&jugador_id=${jugador_id}`;
-    } else if (tipo === 'equipo' && equipo_id) {
-        body += `&equipo_id=${equipo_id}`;
-    } else {
-        alert('Por favor selecciona los filtros necesarios.');
+    let isValid = true;
+    let errorMessage = '';
+
+    if (tipo === 'por_partido') {
+        if (!jugador_id || !partido_id) {
+            isValid = false;
+            errorMessage = 'Selecciona un jugador y un partido para estadísticas por partido.';
+        } else {
+            body += `&jugador_id=${jugador_id}&partido_id=${partido_id}`;
+        }
+    } else if (tipo === 'generales') {
+        if (!jugador_id) {
+            isValid = false;
+            errorMessage = 'Selecciona un jugador para estadísticas generales.';
+        } else {
+            body += `&jugador_id=${jugador_id}`;
+        }
+    } else if (tipo === 'equipo') {
+        if (!equipo_id) {
+            isValid = false;
+            errorMessage = 'Selecciona un equipo para estadísticas de equipo.';
+        } else {
+            body += `&equipo_id=${equipo_id}`;
+        }
+    }
+
+    if (!isValid) {
+        alert(errorMessage);
         return;
     }
 
-    fetch(`/reportes/exportar/${format}`, {
+    console.log('Sending request with body:', body); // Debug log
+
+    fetch('/exportar_pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status); // Debug log
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
-        window.open(data.url, '_blank');
+        console.log('Response data:', data); // Debug log
+        if (data.error) {
+            alert(`Export failed: ${data.error}`);
+        } else {
+            window.open(data.url, '_blank');
+        }
+    })
+    .catch(error => {
+        console.error('Export error:', error);
+        alert(`Failed to export PDF: ${error.message}`);
     });
 }
 

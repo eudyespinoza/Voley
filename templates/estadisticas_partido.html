@@ -666,8 +666,7 @@
         <div class="col-12 text-center">
             <button class="btn btn-primary me-2" onclick="rotatePositions()">Rotar Posiciones</button>
             <button class="btn btn-warning me-2" onclick="undoLastAction()">Deshacer</button>
-            <button class="btn btn-success me-2" onclick="exportarEstadisticas('csv')"><i class="bi bi-file-earmark-excel"></i> Exportar CSV</button>
-            <button class="btn btn-danger me-2" onclick="exportarEstadisticas('pdf')"><i class="bi bi-file-earmark-pdf"></i> Exportar PDF</button>
+            <button class="btn btn-danger me-2" onclick="exportarEstadisticas()"><i class="bi bi-file-earmark-pdf"></i> Exportar PDF</button>
             <button class="btn btn-info" onclick="grabarJuego()"><i class="bi bi-save"></i> Grabar Juego</button>
         </div>
     </div>
@@ -686,6 +685,31 @@ let maxSets = 5; // Best of 5 sets
 let setScores = []; // Array to store scores of each set
 let matchEnded = false; // Flag to track if the match has ended
 
+function initializeMatchData() {
+    const initialSetScores = {{ partido.set_scores|tojson|safe }} || [];
+    setScores = initialSetScores;
+    setsWonLocal = setScores.filter(s => s.local > s.visitante).length;
+    setsWonVisitante = setScores.filter(s => s.visitante > s.local).length;
+    currentSet = setScores.length + 1;
+
+    if ("{{ partido.estado }}" === "Finalizado") {
+        matchEnded = true;
+        document.getElementById('scoreLocal').innerText = {{ partido.marcador_local|default(0) }};
+        document.getElementById('scoreVisitante').innerText = {{ partido.marcador_visitante|default(0) }};
+        document.getElementById('localIncrement').disabled = true;
+        document.getElementById('localDecrement').disabled = true;
+        document.getElementById('visitorIncrement').disabled = true;
+        document.getElementById('visitorDecrement').disabled = true;
+    } else {
+        document.getElementById('scoreLocal').innerText = {{ partido.marcador_local|default(0) }};
+        document.getElementById('scoreVisitante').innerText = {{ partido.marcador_visitante|default(0) }};
+    }
+
+    document.getElementById('setScore').innerText = `{{ partido.equipo.nombre }} ${setsWonLocal} - ${setsWonVisitante} {{ partido.rival }}`;
+    document.getElementById('setNumber').innerText = currentSet;
+    displayPreviousSets();
+}
+
 function selectPlayerFromPosition(posicion) {
     const select = document.getElementById(`posicion_${posicion}`);
     const jugador_id = select.value;
@@ -695,9 +719,8 @@ function selectPlayerFromPosition(posicion) {
         document.querySelectorAll('.player-selector-card').forEach(card => card.classList.remove('selected'));
         document.getElementById(`card_${posicion}`).classList.add('selected');
         const selectedOption = select.options[select.selectedIndex];
-        const playerName = selectedOption.text.split(' (')[0]; // Extraer solo el nombre
-        const playerNumber = selectedOption.getAttribute('data-numero') || 'N/A'; // Valor por defecto si no hay número
-        console.log('Jugador seleccionado:', { jugador_id: selectedPlayer, posicion: selectedPosition, nombre: playerName, numero: playerNumber }); // Depuración
+        const playerName = selectedOption.text.split(' (')[0];
+        const playerNumber = selectedOption.getAttribute('data-numero') || 'N/A';
         document.getElementById('selectedPlayerName').innerText = playerName;
         document.getElementById('selectedPlayerNumber').innerText = playerNumber;
         loadPlayerStats(selectedPlayer);
@@ -714,16 +737,9 @@ function selectPlayerFromPosition(posicion) {
 }
 
 function loadPlayerStats(jugador_id) {
-    console.log('Cargando estadísticas para el jugador:', jugador_id); // Depuración
     fetch(`/api/estadisticas?tipo=por_partido&jugador_id=${jugador_id}&partido_id={{ partido.id }}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error en la respuesta de la API: ' + response.statusText);
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            console.log('Datos recibidos:', data); // Depuración
             if (data.error) {
                 console.error('Error en los datos:', data.error);
                 resetStatsDisplay();
@@ -744,7 +760,7 @@ function loadPlayerStats(jugador_id) {
                 document.getElementById('defensas_fallidas').innerText = data.defensas_fallidas || 0;
                 document.getElementById('asistencias').innerText = data.asistencias || 0;
                 document.getElementById('asistencias_fallidas').innerText = data.asistencias_fallidas || 0;
-                updateResumen(jugador_id); // Actualizar el resumen después de cargar las estadísticas
+                updateResumen(jugador_id);
             }
         })
         .catch(error => {
@@ -754,7 +770,6 @@ function loadPlayerStats(jugador_id) {
 }
 
 function resetStatsDisplay() {
-    console.log('Restableciendo estadísticas a 0'); // Depuración
     document.getElementById('saques_ace').innerText = '0';
     document.getElementById('saques_fallidos').innerText = '0';
     document.getElementById('saques_totales').innerText = '0';
@@ -778,26 +793,23 @@ function updateStat(jugador_id, stat, action) {
         alert('Selecciona un jugador primero.');
         return;
     }
-    console.log('Actualizando estadística:', { jugador_id, stat, action }); // Depuración
     socket.emit('update_stat', { partido_id: {{ partido.id }}, jugador_id: jugador_id, stat: stat, action: action });
     lastAction = { jugador_id, stat, action };
 }
 
 function rotatePositions() {
-    console.log('Rotando posiciones'); // Depuración
     socket.emit('rotate_positions', { partido_id: {{ partido.id }} });
 }
 
 function undoLastAction() {
     if (!lastAction) return;
     const oppositeAction = lastAction.action === 'increment' ? 'decrement' : 'increment';
-    console.log('Deshaciendo acción:', { ...lastAction, oppositeAction }); // Depuración
     socket.emit('update_stat', { partido_id: {{ partido.id }}, jugador_id: lastAction.jugador_id, stat: lastAction.stat, action: oppositeAction });
     lastAction = null;
 }
 
 function updateScore(team, action) {
-    if (matchEnded) return; // Prevent score updates after the match ends
+    if (matchEnded) return;
 
     let scoreLocal = parseInt(document.getElementById('scoreLocal').innerText);
     let scoreVisitante = parseInt(document.getElementById('scoreVisitante').innerText);
@@ -811,10 +823,7 @@ function updateScore(team, action) {
     document.getElementById('scoreLocal').innerText = scoreLocal;
     document.getElementById('scoreVisitante').innerText = scoreVisitante;
 
-    // Determine the target score for the set (25 for sets 1-4, 15 for set 5)
     const targetScore = currentSet === 5 ? 15 : 25;
-
-    // Check if the set has ended (must reach target score with a 2-point lead)
     let setEnded = false;
     if (scoreLocal >= targetScore && scoreLocal - scoreVisitante >= 2) {
         setsWonLocal++;
@@ -830,65 +839,47 @@ function updateScore(team, action) {
 
     document.getElementById('setScore').innerText = `{{ partido.equipo.nombre }} ${setsWonLocal} - ${setsWonVisitante} {{ partido.rival }}`;
 
-    // Emit the updated scores after the reset (if a set ended)
-    if (!setEnded) {
-        socket.emit('update_score', { partido_id: {{ partido.id }}, scoreLocal: scoreLocal, scoreVisitante: scoreVisitante });
-    }
+    socket.emit('update_score', {
+        partido_id: {{ partido.id }},
+        scoreLocal: setEnded ? 0 : scoreLocal,
+        scoreVisitante: setEnded ? 0 : scoreVisitante,
+        set_scores: setScores
+    });
 }
 
 function resetSet() {
-    // Check if the match has ended (best of 5, so a team needs 3 sets to win)
     if (setsWonLocal >= 3 || setsWonVisitante >= 3) {
         matchEnded = true;
         alert(`Partido terminado! ${setsWonLocal > setsWonVisitante ? '{{ partido.equipo.nombre }}' : '{{ partido.rival }}'} gana ${setsWonLocal}:${setsWonVisitante}`);
-        // Disable the score buttons
         document.getElementById('localIncrement').disabled = true;
         document.getElementById('localDecrement').disabled = true;
         document.getElementById('visitorIncrement').disabled = true;
         document.getElementById('visitorDecrement').disabled = true;
 
-        // Send the final data to the backend to mark the match as "Finalizado"
         fetch(`/partido/finalizar/{{ partido.id }}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                marcador_local: parseInt(document.getElementById('scoreLocal').innerText),
-                marcador_visitante: parseInt(document.getElementById('scoreVisitante').innerText),
+                marcador_local: 0,
+                marcador_visitante: 0,
                 set_scores: setScores
             })
         })
         .then(response => response.json())
-        .then(data => {
-            console.log(data.message);
-        })
+        .then(data => console.log(data.message))
         .catch(error => {
             console.error('Error al finalizar el partido:', error);
             alert('Error al finalizar el partido');
         });
-        return; // Do not reset the scoreboard
+        return;
     }
 
-    let scoreLocal = 0;
-    let scoreVisitante = 0;
+    document.getElementById('scoreLocal').innerText = 0;
+    document.getElementById('scoreVisitante').innerText = 0;
     currentSet++;
-    console.log(`Resetting set: Current Set ${currentSet}, Scores reset to ${scoreLocal}-${scoreVisitante}`); // Debug log
-
-    // Check if we need a fifth set (tied at 2-2 after 4 sets)
-    if (currentSet === 5 && setsWonLocal === 2 && setsWonVisitante === 2) {
-        console.log("Playing fifth set to 15 points");
-    } else if (currentSet > maxSets) {
-        console.warn("Unexpected set continuation");
-    }
-
-    // Update the DOM with the reset scores
-    document.getElementById('scoreLocal').innerText = scoreLocal;
-    document.getElementById('scoreVisitante').innerText = scoreVisitante;
     document.getElementById('setNumber').innerText = currentSet;
     document.getElementById('setScore').innerText = `{{ partido.equipo.nombre }} ${setsWonLocal} - ${setsWonVisitante} {{ partido.rival }}`;
     displayPreviousSets();
-
-    // Emit the reset scores to the server
-    socket.emit('update_score', { partido_id: {{ partido.id }}, scoreLocal: scoreLocal, scoreVisitante: scoreVisitante });
 }
 
 function displayPreviousSets() {
@@ -910,15 +901,29 @@ function updateTitular(partido_id, jugador_id, posicion) {
     }
 }
 
-function exportarEstadisticas(format) {
-    fetch(`/partido/estadisticas/exportar/{{ partido.id }}`, {
+function exportarEstadisticas() {
+    const partido_id = {{ partido.id }};
+    fetch('/exportar_pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `format=${format}`
+        body: `tipo=por_partido&partido_id=${partido_id}&jugador_id=${selectedPlayer || ''}`
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error en la respuesta del servidor: ' + response.status);
+        }
+        return response.json();
+    })
     .then(data => {
-        window.open(data.url, '_blank');
+        if (data.error) {
+            alert(data.error);
+        } else {
+            window.open(data.url, '_blank');
+        }
+    })
+    .catch(error => {
+        console.error('Error al exportar:', error);
+        alert('No se pudo exportar el archivo. Revisa la consola para más detalles.');
     });
 }
 
@@ -943,7 +948,6 @@ function grabarJuego() {
             setScores = [];
             matchEnded = false;
             displayPreviousSets();
-            // Re-enable the score buttons
             document.getElementById('localIncrement').disabled = false;
             document.getElementById('localDecrement').disabled = false;
             document.getElementById('visitorIncrement').disabled = false;
@@ -981,13 +985,9 @@ ${playerName}:
     document.getElementById('resumenJugador').innerText = resumen;
 }
 
-// Initialize the set score on page load
-document.getElementById('setScore').innerText = `{{ partido.equipo.nombre }} ${setsWonLocal} - ${setsWonVisitante} {{ partido.rival }}`;
-document.getElementById('setNumber').innerText = currentSet;
-displayPreviousSets();
+window.onload = initializeMatchData;
 
 socket.on('stat_updated', function(data) {
-    console.log('Evento stat_updated recibido:', data); // Depuración
     if (data.jugador_id === selectedPlayer) {
         document.getElementById(`${data.stat}`).innerText = data.value;
         if (data.stat.startsWith('saques_')) {
@@ -1009,18 +1009,19 @@ socket.on('stat_updated', function(data) {
 });
 
 socket.on('score_updated', function(data) {
-    console.log('Evento score_updated recibido:', data); // Depuración
     document.getElementById('scoreLocal').innerText = data.scoreLocal;
     document.getElementById('scoreVisitante').innerText = data.scoreVisitante;
+    setScores = data.set_scores || [];
+    setsWonLocal = setScores.filter(s => s.local > s.visitante).length;
+    setsWonVisitante = setScores.filter(s => s.visitante > s.local).length;
+    currentSet = setScores.length + 1;
+    document.getElementById('setScore').innerText = `{{ partido.equipo.nombre }} ${setsWonLocal} - ${setsWonVisitante} {{ partido.rival }}`;
+    document.getElementById('setNumber').innerText = currentSet;
+    displayPreviousSets();
 });
 
 socket.on('titulares_updated', function(data) {
-    console.log('Evento titulares_updated recibido:', data); // Depuración
     const titulares = data.titulares;
-    document.getElementById(`titulares_${data.partido_id}`).innerHTML = titulares.map(id => {
-        const jugador = {{ jugadores|tojson }}.find(j => j.id === id);
-        return jugador ? jugador.nombre : `Jugador no encontrado (ID: ${id})`;
-    }).join(', ');
     if (data.action === 'add') {
         document.getElementById(`posicion_${data.posicion}`).value = data.jugador_id;
     } else if (data.action === 'remove') {
@@ -1040,7 +1041,6 @@ socket.on('titulares_updated', function(data) {
 });
 
 socket.on('positions_rotated', function(data) {
-    console.log('Evento positions_rotated recibido:', data); // Depuración
     const posiciones = data.posiciones;
     for (let pos = 1; pos <= 7; pos++) {
         const select = document.getElementById(`posicion_${pos}`);
@@ -1064,7 +1064,6 @@ socket.on('positions_rotated', function(data) {
 });
 
 socket.on('titulares_error', function(data) {
-    console.log('Evento titulares_error recibido:', data); // Depuración
     alert(data.message);
 });
 </script>

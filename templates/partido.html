@@ -102,9 +102,10 @@
                 <p><strong>Rival:</strong> {{ partido.rival }}</p>
                 <p><strong>Lugar:</strong> {{ 'Local' if partido.es_local else 'Visitante' }}</p>
                 <p><strong>Tipo:</strong> {{ partido.tipo_partido }}</p>
-                <p class="marcador">{{ partido.marcador_local }} - {{ partido.marcador_visitante }}</p>
-                {% if partido.estado == 'Finalizado' and partido.set_scores %}
+                <p><strong>Set actual:</strong> {{ partido.marcador_local }} - {{ partido.marcador_visitante }}</p>
+                {% if partido.set_scores %}
                 <div class="set-scores">
+                    <p><strong>Sets jugados:</strong></p>
                     {% for set_score in partido.set_scores %}
                     <p>Set {{ set_score.set }}: {{ set_score.local }} - {{ set_score.visitante }}</p>
                     {% endfor %}

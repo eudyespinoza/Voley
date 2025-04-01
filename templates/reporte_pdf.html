@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Estadísticas de Voleibol</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h1 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #f2f2f2; }
+        img { max-width: 100%; height: auto; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Estadísticas de {{ 'Jugador' if tipo != 'equipo' else 'Equipo' }}: {{ datos.jugador if tipo != 'equipo' else datos.equipo }}{% if tipo == 'por_partido' %} vs {{ datos.partido }}{% endif %}</h1>
+    <table>
+        <tr>
+            <th>Categoría</th>
+            <th>Valor</th>
+        </tr>
+        <tr><td>Saques Ace</td><td>{{ datos.saques_ace }}</td></tr>
+        <tr><td>Saques Fallidos</td><td>{{ datos.saques_fallidos }}</td></tr>
+        <tr><td>Saques Totales</td><td>{{ datos.saques_totales }}</td></tr>
+        <tr><td>Ataques Puntos</td><td>{{ datos.ataques_puntos }}</td></tr>
+        <tr><td>Ataques Fallidos</td><td>{{ datos.ataques_fallidos }}</td></tr>
+        <tr><td>Ataques Bloqueados</td><td>{{ datos.ataques_bloqueados }}</td></tr>
+        <tr><td>Ataques Totales</td><td>{{ datos.ataques_totales }}</td></tr>
+        <tr><td>Efectividad Ataque</td><td>{{ datos.efectividad_ataque|round(2) }}%</td></tr>
+        <tr><td>Recepciones Perfectas</td><td>{{ datos.recepciones_perfectas }}</td></tr>
+        <tr><td>Recepciones Positivas</td><td>{{ datos.recepciones_positivas }}</td></tr>
+        <tr><td>Recepciones Fallidas</td><td>{{ datos.recepciones_fallidas }}</td></tr>
+        <tr><td>Bloqueos Puntos</td><td>{{ datos.bloqueos_puntos }}</td></tr>
+        <tr><td>Bloqueos Toques</td><td>{{ datos.bloqueos_toques }}</td></tr>
+        <tr><td>Defensas Levantadas</td><td>{{ datos.defensas_levantadas }}</td></tr>
+        <tr><td>Defensas Fallidas</td><td>{{ datos.defensas_fallidas }}</td></tr>
+        <tr><td>Asistencias</td><td>{{ datos.asistencias }}</td></tr>
+        <tr><td>Asistencias Fallidas</td><td>{{ datos.asistencias_fallidas }}</td></tr>
+    </table>
+    <h2>Gráficos</h2>
+    <img src="data:image/png;base64,{{ charts.saques }}" alt="Gráfico de Saques">
+    <img src="data:image/png;base64,{{ charts.ataques }}" alt="Gráfico de Ataques">
+    <img src="data:image/png;base64,{{ charts.recepciones }}" alt="Gráfico de Recepciones">
+    <img src="data:image/png;base64,{{ charts.bloqueos }}" alt="Gráfico de Bloqueos">
+    <img src="data:image/png;base64,{{ charts.defensas }}" alt="Gráfico de Defensas">
+    <img src="data:image/png;base64,{{ charts.asistencias }}" alt="Gráfico de Asistencias">
+</body>
+</html>

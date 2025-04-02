@@ -797,8 +797,21 @@ function updateStat(jugador_id, stat, action) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ partido_id: {{ partido.id }}, jugador_id: jugador_id, stat: stat, action: action })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error al actualizar la estadística');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Respuesta del servidor:', data); // Depuración
+        lastAction = { jugador_id, stat, action };
+    })
+    .catch(error => {
+        console.error('Error en updateStat:', error);
+        alert('No se pudo actualizar la estadística. Revisa la consola.');
     });
-    lastAction = { jugador_id, stat, action };
 }
 
 function rotatePositions() {

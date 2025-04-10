@@ -962,4 +962,8 @@ with app.app_context():
         db.session.commit()
 
 if __name__ == "__main__":
+    # Para desarrollo local, usa socketio.run()
     socketio.run(app, debug=True, allow_unsafe_werkzeug=True, host='0.0.0.0', port=5001, log_output=True)
+else:
+    # Para producción con gunicorn, no necesitas socketio.run()
+    pass

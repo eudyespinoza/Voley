@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import re
 import base64
-from flask import Flask, render_template, request, redirect, url_for, jsonify, flash, Response
+from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
+from flask_socketio import SocketIO, emit
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from datetime import date
@@ -12,10 +13,8 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Image
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
+from io import BytesIO
 import time
-from queue import Queue
-import threading
-import json
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///volley_stats.db'
@@ -23,14 +22,12 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'ounewf7efnwo8ghwoe8gh'
 
 db = SQLAlchemy(app)
+socketio = SocketIO(app, logger=True, engineio_logger=True)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# Cola de eventos para SSE
-event_queues = {}  # Diccionario para almacenar colas por sesión de cliente
-event_lock = threading.Lock()
-
+# Crear directorio para reportes si no existe
 os.makedirs('static/reports', exist_ok=True)
 
 # Modelo de Usuario
@@ -428,32 +425,6 @@ def generate_chart(data, labels, title, colors):
     plt.close()
     return base64.b64encode(img.getvalue()).decode('utf-8')
 
-# SSE event generator
-def event_stream(session_id):
-    with event_lock:
-        if session_id not in event_queues:
-            event_queues[session_id] = Queue()
-    queue = event_queues[session_id]
-    try:
-        while True:
-            message = queue.get()
-            yield f"data: {json.dumps(message)}\n\n"
-    except GeneratorExit:
-        with event_lock:
-            del event_queues[session_id]
-
-# SSE endpoint
-@app.route('/events/<session_id>')
-@login_required
-def sse_events(session_id):
-    return Response(event_stream(session_id), mimetype='text/event-stream')
-
-# Broadcast event to all connected clients
-def broadcast_event(event_type, data):
-    with event_lock:
-        for queue in event_queues.values():
-            queue.put({'event': event_type, 'data': data})
-
 @app.route('/exportar_pdf', methods=['POST'])
 @login_required
 def exportar_pdf():
@@ -697,6 +668,7 @@ def exportar_pdf():
 
     # Save to file with the same name as the title
     timestamp = int(time.time())
+    # Clean the title to make it a valid filename
     file_name = re.sub(r'[^\w\s-]', '', title)  # Remove special characters
     file_name = re.sub(r'\s+', '_', file_name)  # Replace spaces with underscores
     file_name = f"{file_name}_{timestamp}.pdf"  # Add timestamp for uniqueness
@@ -821,17 +793,15 @@ def obtener_estadisticas():
         return jsonify(datos)
     return jsonify({"error": "Parámetros inválidos"}), 400
 
-@app.route('/update_stat', methods=['POST'])
-@login_required
-def update_stat():
-    data = request.get_json()
+@socketio.on('update_stat')
+def handle_update_stat(data):
     partido_id = data['partido_id']
     jugador_id = data['jugador_id']
     stat = data['stat']
     action = data['action']
     partido = db.session.get(Partido, partido_id)
     if not partido or (partido.user_id != current_user.id and not current_user.is_admin):
-        return jsonify({'error': 'Unauthorized'}), 403
+        return
     estadistica = EstadisticaPartido.query.filter_by(partido_id=partido_id, jugador_id=jugador_id).first()
     if not estadistica:
         estadistica = EstadisticaPartido(partido_id=partido_id, jugador_id=jugador_id, user_id=current_user.id)
@@ -852,60 +822,72 @@ def update_stat():
             elif stat.startswith('ataques_'):
                 estadistica.ataques_totales = estadistica.ataques_puntos + estadistica.ataques_fallidos + estadistica.ataques_bloqueados
     db.session.commit()
-    event_data = {
+    emit('stat_updated', {
         'jugador_id': jugador_id, 'stat': stat, 'value': getattr(estadistica, stat),
         'saques_totales': estadistica.saques_totales, 'ataques_totales': estadistica.ataques_totales,
-        'efectividad_ataque': (estadistica.ataques_puntos / estadistica.ataques_totales * 100) if estadistica.ataques_totales > 0 else 0,
+        'efectividad_ataque': (
+                    estadistica.ataques_puntos / estadistica.ataques_totales * 100) if estadistica.ataques_totales > 0 else 0,
         'recepciones_perfectas': estadistica.recepciones_perfectas,
         'recepciones_positivas': estadistica.recepciones_positivas,
         'recepciones_fallidas': estadistica.recepciones_fallidas, 'bloqueos_puntos': estadistica.bloqueos_puntos,
         'bloqueos_toques': estadistica.bloqueos_toques, 'defensas_levantadas': estadistica.defensas_levantadas,
         'defensas_fallidas': estadistica.defensas_fallidas, 'asistencias': estadistica.asistencias,
         'asistencias_fallidas': estadistica.asistencias_fallidas
-    }
-    broadcast_event('stat_updated', event_data)
-    return jsonify({'message': 'Stat updated'})
+    }, broadcast=True)
 
-@app.route('/update_score', methods=['POST'])
-@login_required
-def update_score():
-    data = request.get_json()
+@socketio.on('update_rotation')
+def handle_update_rotation(data):
+    partido_id = data['partido_id']
+    jugador_id = data['jugador_id']
+    new_position = data['new_position']
+    partido = db.session.get(Partido, partido_id)
+    if not partido or (partido.user_id != current_user.id and not current_user.is_admin):
+        return
+    estadistica = EstadisticaPartido.query.filter_by(partido_id=partido_id, jugador_id=jugador_id).first()
+    if estadistica:
+        estadistica.posicion = new_position
+        db.session.commit()
+        emit('rotation_updated', {'jugador_id': jugador_id, 'new_position': new_position}, broadcast=True)
+
+@socketio.on('update_score')
+def handle_update_score(data):
     partido_id = data['partido_id']
     scoreLocal = data['scoreLocal']
     scoreVisitante = data['scoreVisitante']
-    set_scores = data.get('set_scores', [])
-    partido = db.session.get(Partido, partido_id)
-    if not partido or (partido.user_id != current_user.id and not current_user.is_admin):
-        return jsonify({'error': 'Unauthorized'}), 403
-    partido.marcador_local = scoreLocal
-    partido.marcador_visitante = scoreVisitante
-    partido.set_scores = set_scores
-    db.session.commit()
-    broadcast_event('score_updated', {
-        'partido_id': partido_id, 'scoreLocal': scoreLocal, 'scoreVisitante': scoreVisitante, 'set_scores': set_scores
-    })
-    return jsonify({'message': 'Score updated'})
+    setScores = data.get('set_scores', [])
 
-@app.route('/update_titulares', methods=['POST'])
-@login_required
-def update_titulares():
-    data = request.get_json()
+    partido = db.session.get(Partido, partido_id)
+    if partido and (partido.user_id == current_user.id or current_user.is_admin):
+        partido.marcador_local = scoreLocal
+        partido.marcador_visitante = scoreVisitante
+        partido.set_scores = setScores
+        db.session.commit()
+        emit('score_updated', {
+            'partido_id': partido_id,
+            'scoreLocal': scoreLocal,
+            'scoreVisitante': scoreVisitante,
+            'set_scores': partido.set_scores
+        }, broadcast=True)
+
+@socketio.on('update_titulares')
+def handle_update_titulares(data):
     partido_id = data['partido_id']
     jugador_id = data['jugador_id']
     action = data['action']
     posicion = data.get('posicion', 1)
     partido = db.session.get(Partido, partido_id)
     if not partido or (partido.user_id != current_user.id and not current_user.is_admin):
-        return jsonify({'error': 'Unauthorized'}), 403
+        return
     if action == 'add':
         if len(partido.titulares) >= 7:
-            broadcast_event('titulares_error', {'message': 'No se pueden tener más de 7 jugadores en cancha.'})
-            return jsonify({'error': 'Too many players'}), 400
+            emit('titulares_error', {'message': 'No se pueden tener más de 7 jugadores en cancha.'}, broadcast=True)
+            return
         if jugador_id not in partido.titulares:
             partido.titulares.append(jugador_id)
             estadistica = EstadisticaPartido.query.filter_by(partido_id=partido_id, jugador_id=jugador_id).first()
             if not estadistica:
-                estadistica = EstadisticaPartido(partido_id=partido_id, jugador_id=jugador_id, user_id=current_user.id, posicion=posicion)
+                estadistica = EstadisticaPartido(partido_id=partido_id, jugador_id=jugador_id, user_id=current_user.id,
+                                                 posicion=posicion)
                 db.session.add(estadistica)
             else:
                 estadistica.posicion = posicion
@@ -913,27 +895,24 @@ def update_titulares():
         if jugador_id in partido.titulares:
             partido.titulares.remove(jugador_id)
     db.session.commit()
-    broadcast_event('titulares_updated', {
-        'partido_id': partido_id, 'titulares': partido.titulares, 'jugador_id': jugador_id, 'posicion': posicion, 'action': action
-    })
-    return jsonify({'message': 'Titulares updated'})
+    emit('titulares_updated',
+         {'partido_id': partido_id, 'titulares': partido.titulares, 'jugador_id': jugador_id, 'posicion': posicion},
+         broadcast=True)
 
-@app.route('/rotate_positions', methods=['POST'])
-@login_required
-def rotate_positions():
-    data = request.get_json()
+@socketio.on('rotate_positions')
+def handle_rotate_positions(data):
     partido_id = data['partido_id']
     partido = db.session.get(Partido, partido_id)
     if not partido or (partido.user_id != current_user.id and not current_user.is_admin):
-        return jsonify({'error': 'Unauthorized'}), 403
+        return
     estadisticas = EstadisticaPartido.query.filter_by(partido_id=partido_id).all()
     for stat in estadisticas:
         if stat.jugador_id in partido.titulares:
             stat.posicion = (stat.posicion % 7) + 1
     db.session.commit()
-    posiciones = {stat.jugador_id: stat.posicion for stat in estadisticas if stat.jugador_id in partido.titulares}
-    broadcast_event('positions_rotated', {'partido_id': partido_id, 'posiciones': posiciones})
-    return jsonify({'message': 'Positions rotated'})
+    emit('positions_rotated', {'partido_id': partido_id,
+                               'posiciones': {stat.jugador_id: stat.posicion for stat in estadisticas if
+                                              stat.jugador_id in partido.titulares}}, broadcast=True)
 
 @app.route('/partido/estadisticas/grabar/<int:partido_id>', methods=['POST'])
 @login_required
@@ -983,4 +962,6 @@ with app.app_context():
         db.session.commit()
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    socketio.run(app, debug=True, allow_unsafe_werkzeug=True, host='0.0.0.0', port=5000, log_output=True)
+else:
+    pass

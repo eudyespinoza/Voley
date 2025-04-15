@@ -419,7 +419,7 @@
             font-size: 0.8rem;
         }
 
-        .player-selector-container {
+CO        .player-selector-container {
             gap: 8px;
         }
 
@@ -672,20 +672,9 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4/dist/socket.io.min.js"></script>
 <script>
-localStorage.debug = 'socket.io-client:*';
-const socket = io('127.0.0.1:8000', {
-    transports: ['websocket', 'polling']
-});
-
-socket.on('connect_error', (error) => {
-    console.error('Socket.IO Connect Error:', error);
-});
-
-socket.on('error', (error) => {
-    console.error('Socket.IO Error:', error);
-});
+const sessionId = Date.now().toString();
+const eventSource = new EventSource(`/events/${sessionId}`);
 let selectedPlayer = null;
 let selectedPosition = null;
 let lastAction = null;
@@ -804,18 +793,65 @@ function updateStat(jugador_id, stat, action) {
         alert('Selecciona un jugador primero.');
         return;
     }
-    socket.emit('update_stat', { partido_id: {{ partido.id }}, jugador_id: jugador_id, stat: stat, action: action });
-    lastAction = { jugador_id, stat, action };
+
+    // Actualización local inmediata
+    let currentValue = parseInt(document.getElementById(stat).innerText) || 0;
+    if (action === 'increment') {
+        currentValue++;
+    } else if (action === 'decrement' && currentValue > 0) {
+        currentValue--;
+    }
+    document.getElementById(stat).innerText = currentValue;
+
+    // Actualizar totales y efectividad localmente si aplica
+    if (stat.startsWith('saques_')) {
+        const saquesAce = parseInt(document.getElementById('saques_ace').innerText) || 0;
+        const saquesFallidos = parseInt(document.getElementById('saques_fallidos').innerText) || 0;
+        document.getElementById('saques_totales').innerText = saquesAce + saquesFallidos;
+    } else if (stat.startsWith('ataques_')) {
+        const ataquesPuntos = parseInt(document.getElementById('ataques_puntos').innerText) || 0;
+        const ataquesFallidos = parseInt(document.getElementById('ataques_fallidos').innerText) || 0;
+        const ataquesBloqueados = parseInt(document.getElementById('ataques_bloqueados').innerText) || 0;
+        const ataquesTotales = ataquesPuntos + ataquesFallidos + ataquesBloqueados;
+        document.getElementById('efectividad_ataque').innerText = ataquesTotales > 0 ? ((ataquesPuntos / ataquesTotales) * 100).toFixed(2) + '%' : '0%';
+    }
+
+    updateResumen(jugador_id); // Actualizar resumen inmediatamente
+
+    // Enviar al servidor para persistencia y sincronización
+    fetch('/update_stat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ partido_id: {{ partido.id }}, jugador_id: jugador_id, stat: stat, action: action })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error al actualizar la estadística en el servidor');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Respuesta del servidor:', data);
+        lastAction = { jugador_id, stat, action };
+    })
+    .catch(error => {
+        console.error('Error en updateStat:', error);
+        alert('No se pudo sincronizar con el servidor. Los cambios locales podrían no persistir.');
+    });
 }
 
 function rotatePositions() {
-    socket.emit('rotate_positions', { partido_id: {{ partido.id }} });
+    fetch('/rotate_positions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ partido_id: {{ partido.id }} })
+    });
 }
 
 function undoLastAction() {
     if (!lastAction) return;
     const oppositeAction = lastAction.action === 'increment' ? 'decrement' : 'increment';
-    socket.emit('update_stat', { partido_id: {{ partido.id }}, jugador_id: lastAction.jugador_id, stat: lastAction.stat, action: oppositeAction });
+    updateStat(lastAction.jugador_id, lastAction.stat, oppositeAction);
     lastAction = null;
 }
 
@@ -850,11 +886,15 @@ function updateScore(team, action) {
 
     document.getElementById('setScore').innerText = `{{ partido.equipo.nombre }} ${setsWonLocal} - ${setsWonVisitante} {{ partido.rival }}`;
 
-    socket.emit('update_score', {
-        partido_id: {{ partido.id }},
-        scoreLocal: setEnded ? 0 : scoreLocal,
-        scoreVisitante: setEnded ? 0 : scoreVisitante,
-        set_scores: setScores
+    fetch('/update_score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            partido_id: {{ partido.id }},
+            scoreLocal: setEnded ? 0 : scoreLocal,
+            scoreVisitante: setEnded ? 0 : scoreVisitante,
+            set_scores: setScores
+        })
     });
 }
 
@@ -905,11 +945,11 @@ function displayPreviousSets() {
 }
 
 function updateTitular(partido_id, jugador_id, posicion) {
-    if (jugador_id === "") {
-        socket.emit('update_titulares', { partido_id: partido_id, jugador_id: parseInt(jugador_id), action: 'remove', posicion: parseInt(posicion) });
-    } else {
-        socket.emit('update_titulares', { partido_id: partido_id, jugador_id: parseInt(jugador_id), action: 'add', posicion: parseInt(posicion) });
-    }
+    fetch('/update_titulares', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ partido_id: partido_id, jugador_id: parseInt(jugador_id), action: jugador_id ? 'add' : 'remove', posicion: parseInt(posicion) })
+    });
 }
 
 function exportarEstadisticas() {
@@ -998,79 +1038,50 @@ ${playerName}:
 
 window.onload = initializeMatchData;
 
-socket.on('connect', () => {
-    console.log('Conectado al servidor WebSocket');
-});
+eventSource.onmessage = function(event) {
+    console.log('Evento SSE recibido:', event.data);
+    const data = JSON.parse(event.data);
+    const eventType = data.event;
+    const eventData = data.data;
 
-socket.on('connect_error', (error) => {
-    console.error('Error de conexión WebSocket:', error);
-});
-
-socket.on('stat_updated', function(data) {
-    if (data.jugador_id === selectedPlayer) {
-        document.getElementById(`${data.stat}`).innerText = data.value;
-        if (data.stat.startsWith('saques_')) {
-            document.getElementById('saques_totales').innerText = data.saques_totales || 0;
-        } else if (data.stat.startsWith('ataques_')) {
-            document.getElementById('efectividad_ataque').innerText = (data.efectividad_ataque || 0).toFixed(2) + '%';
+    if (eventType === 'stat_updated') {
+        // Solo actualizar si el jugador no es el que inició la acción (evitar duplicación)
+        if (eventData.jugador_id !== selectedPlayer) {
+            document.getElementById(`${eventData.stat}`).innerText = eventData.value;
+            if (eventData.stat.startsWith('saques_')) {
+                document.getElementById('saques_totales').innerText = eventData.saques_totales || 0;
+            } else if (eventData.stat.startsWith('ataques_')) {
+                document.getElementById('efectividad_ataque').innerText = (eventData.efectividad_ataque || 0).toFixed(2) + '%';
+            }
+            document.getElementById('recepciones_perfectas').innerText = eventData.recepciones_perfectas || 0;
+            document.getElementById('recepciones_positivas').innerText = eventData.recepciones_positivas || 0;
+            document.getElementById('recepciones_fallidas').innerText = eventData.recepciones_fallidas || 0;
+            document.getElementById('bloqueos_puntos').innerText = eventData.bloqueos_puntos || 0;
+            document.getElementById('bloqueos_toques').innerText = eventData.bloqueos_toques || 0;
+            document.getElementById('defensas_levantadas').innerText = eventData.defensas_levantadas || 0;
+            document.getElementById('defensas_fallidas').innerText = eventData.defensas_fallidas || 0;
+            document.getElementById('asistencias').innerText = eventData.asistencias || 0;
+            document.getElementById('asistencias_fallidas').innerText = eventData.asistencias_fallidas || 0;
+            updateResumen(eventData.jugador_id);
         }
-        document.getElementById('recepciones_perfectas').innerText = data.recepciones_perfectas || 0;
-        document.getElementById('recepciones_positivas').innerText = data.recepciones_positivas || 0;
-        document.getElementById('recepciones_fallidas').innerText = data.recepciones_fallidas || 0;
-        document.getElementById('bloqueos_puntos').innerText = data.bloqueos_puntos || 0;
-        document.getElementById('bloqueos_toques').innerText = data.bloqueos_toques || 0;
-        document.getElementById('defensas_levantadas').innerText = data.defensas_levantadas || 0;
-        document.getElementById('defensas_fallidas').innerText = data.defensas_fallidas || 0;
-        document.getElementById('asistencias').innerText = data.asistencias || 0;
-        document.getElementById('asistencias_fallidas').innerText = data.asistencias_fallidas || 0;
-        updateResumen(data.jugador_id);
-    }
-});
-
-socket.on('score_updated', function(data) {
-    document.getElementById('scoreLocal').innerText = data.scoreLocal;
-    document.getElementById('scoreVisitante').innerText = data.scoreVisitante;
-    setScores = data.set_scores || [];
-    setsWonLocal = setScores.filter(s => s.local > s.visitante).length;
-    setsWonVisitante = setScores.filter(s => s.visitante > s.local).length;
-    currentSet = setScores.length + 1;
-    document.getElementById('setScore').innerText = `{{ partido.equipo.nombre }} ${setsWonLocal} - ${setsWonVisitante} {{ partido.rival }}`;
-    document.getElementById('setNumber').innerText = currentSet;
-    displayPreviousSets();
-});
-
-socket.on('titulares_updated', function(data) {
-    const titulares = data.titulares;
-    if (data.action === 'add') {
-        document.getElementById(`posicion_${data.posicion}`).value = data.jugador_id;
-    } else if (data.action === 'remove') {
-        document.getElementById(`posicion_${data.posicion}`).value = '';
-    }
-    if (selectedPlayer && !titulares.includes(selectedPlayer)) {
-        selectedPlayer = null;
-        selectedPosition = null;
-        document.querySelectorAll('.player-selector-card').forEach(card => card.classList.remove('selected'));
-        document.getElementById('selectedPlayerName').innerText = '';
-        document.getElementById('selectedPlayerNumber').innerText = '';
-        resetStatsDisplay();
-        document.getElementById('resumenJugador').innerText = 'Selecciona un jugador para ver su resumen.';
-    } else if (selectedPlayer) {
-        selectPlayerFromPosition(selectedPosition);
-    }
-});
-
-socket.on('positions_rotated', function(data) {
-    const posiciones = data.posiciones;
-    for (let pos = 1; pos <= 7; pos++) {
-        const select = document.getElementById(`posicion_${pos}`);
-        const jugador_id = Object.keys(posiciones).find(id => posiciones[id] === pos);
-        select.value = jugador_id || '';
-    }
-    if (selectedPlayer) {
-        selectedPosition = Object.keys(posiciones).find(id => parseInt(id) === selectedPlayer) ? posiciones[selectedPlayer] : null;
-        if (selectedPosition) {
-            selectPlayerFromPosition(selectedPosition);
-        } else {
+    } else if (eventType === 'score_updated') {
+        document.getElementById('scoreLocal').innerText = eventData.scoreLocal;
+        document.getElementById('scoreVisitante').innerText = eventData.scoreVisitante;
+        setScores = eventData.set_scores || [];
+        setsWonLocal = setScores.filter(s => s.local > s.visitante).length;
+        setsWonVisitante = setScores.filter(s => s.visitante > s.local).length;
+        currentSet = setScores.length + 1;
+        document.getElementById('setScore').innerText = `{{ partido.equipo.nombre }} ${setsWonLocal} - ${setsWonVisitante} {{ partido.rival }}`;
+        document.getElementById('setNumber').innerText = currentSet;
+        displayPreviousSets();
+    } else if (eventType === 'titulares_updated') {
+        const titulares = eventData.titulares;
+        if (eventData.action === 'add') {
+            document.getElementById(`posicion_${eventData.posicion}`).value = eventData.jugador_id;
+        } else if (eventData.action === 'remove') {
+            document.getElementById(`posicion_${eventData.posicion}`).value = '';
+        }
+        if (selectedPlayer && !titulares.includes(selectedPlayer)) {
             selectedPlayer = null;
             selectedPosition = null;
             document.querySelectorAll('.player-selector-card').forEach(card => card.classList.remove('selected'));
@@ -1078,13 +1089,38 @@ socket.on('positions_rotated', function(data) {
             document.getElementById('selectedPlayerNumber').innerText = '';
             resetStatsDisplay();
             document.getElementById('resumenJugador').innerText = 'Selecciona un jugador para ver su resumen.';
+        } else if (selectedPlayer) {
+            selectPlayerFromPosition(selectedPosition);
         }
+    } else if (eventType === 'positions_rotated') {
+        const posiciones = eventData.posiciones;
+        for (let pos = 1; pos <= 7; pos++) {
+            const select = document.getElementById(`posicion_${pos}`);
+            const jugador_id = Object.keys(posiciones).find(id => posiciones[id] === pos);
+            select.value = jugador_id || '';
+        }
+        if (selectedPlayer) {
+            selectedPosition = Object.keys(posiciones).find(id => parseInt(id) === selectedPlayer) ? posiciones[selectedPlayer] : null;
+            if (selectedPosition) {
+                selectPlayerFromPosition(selectedPosition);
+            } else {
+                selectedPlayer = null;
+                selectedPosition = null;
+                document.querySelectorAll('.player-selector-card').forEach(card => card.classList.remove('selected'));
+                document.getElementById('selectedPlayerName').innerText = '';
+                document.getElementById('selectedPlayerNumber').innerText = '';
+                resetStatsDisplay();
+                document.getElementById('resumenJugador').innerText = 'Selecciona un jugador para ver su resumen.';
+            }
+        }
+    } else if (eventType === 'titulares_error') {
+        alert(eventData.message);
     }
-});
+};
 
-socket.on('titulares_error', function(data) {
-    alert(data.message);
-});
+eventSource.onerror = function() {
+    console.error('Error en la conexión SSE');
+};
 </script>
 
 {% endblock %}

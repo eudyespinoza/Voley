@@ -1,9 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
 <style>
-    /* Estilo para el área del marcador */
     .score-area {
-        background: #f0f0f0;
+        background: #1e1e1e;
         border-radius: 10px;
         padding: 15px;
         margin-bottom: 20px;
@@ -12,15 +11,14 @@
         justify-content: center;
         align-items: center;
         flex-direction: column;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
-
     .score-display {
         display: flex;
         justify-content: center;
         align-items: center;
         gap: 20px;
     }
-
     .team-score {
         display: flex;
         flex-direction: column;
@@ -31,15 +29,12 @@
         padding: 10px;
         color: white;
     }
-
     .local-team {
         background-color: #1e90ff;
     }
-
     .visitor-team {
         background-color: #ff4500;
     }
-
     .team-score h4 {
         font-size: 0.9rem;
         margin-bottom: 5px;
@@ -50,141 +45,133 @@
         white-space: nowrap;
         max-width: 100%;
     }
-
     .team-score span {
         font-size: 2.5rem;
         font-weight: bold;
         color: white;
     }
-
     .set-info {
         display: flex;
         flex-direction: column;
         align-items: center;
-        background-color: #d3d3d3;
+        background-color: #2a2a2a;
         border-radius: 5px;
         padding: 5px 10px;
     }
-
     .set-info h5 {
         font-size: 0.9rem;
-        color: #333;
+        color: #ffffff;
         margin-bottom: 5px;
     }
-
     .set-info span {
         font-size: 1.3rem;
         font-weight: bold;
-        color: #333;
+        color: #ffffff;
     }
-
     .score-controls {
         display: flex;
-        flex-direction: row; /* Botones del marcador uno al lado del otro */
+        flex-direction: row;
         justify-content: center;
         align-items: center;
-        gap: 15px; /* Separación horizontal entre botones */
+        gap: 15px;
         margin-top: 10px;
     }
-
     .previous-sets {
         margin-top: 15px;
         display: flex;
         justify-content: center;
         gap: 20px;
         font-size: 0.9rem;
-        color: #333;
+        color: #b0b0b0;
     }
-
     .previous-set {
-        background-color: #e0e0e0;
+        background-color: #2a2a2a;
         border-radius: 5px;
         padding: 5px 10px;
     }
-
-    /* Estilo para los selectores de jugadores */
     .player-selector-container {
         display: flex;
-        flex-wrap: nowrap; /* Siempre en una línea */
-        overflow-x: auto; /* Scroll horizontal en móviles */
+        flex-wrap: nowrap;
+        overflow-x: auto;
         gap: 10px;
         justify-content: flex-start;
-        padding-bottom: 10px; /* Espacio para el scroll */
+        padding-bottom: 10px;
     }
-
     .player-selector-card {
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        background: #1e1e1e;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         border-radius: 8px;
         padding: 8px;
         transition: transform 0.2s, box-shadow 0.2s;
-        flex: 0 0 120px; /* Tamaño fijo para mantener en una línea */
-        min-width: 120px; /* Mínimo ancho para legibilidad */
+        flex: 0 0 120px;
+        min-width: 120px;
         box-sizing: border-box;
     }
-
     .player-selector-card:hover {
-        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.15), -5px -5px 20px rgba(255, 255, 255, 0.9);
+        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
     }
-
     .player-selector-card.selected {
-        background: linear-gradient(145deg, #eebf06, rgba(234, 203, 55, 0.71));
+        background: #007bff;
     }
-
     .player-selector-card label {
-        color: #333;
+        color: #ffffff;
         margin-bottom: 3px;
         display: block;
         font-size: 0.8rem;
         text-align: center;
     }
-
     .player-selector-card select {
         font-size: 0.8rem;
         padding: 4px;
         height: 28px;
         width: 100%;
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+        border: 1px solid #444;
     }
-
+    .player-selector-card select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
     .player-selector-card button {
         font-size: 0.7rem;
         padding: 4px 8px;
         margin-top: 5px;
         width: 100%;
+        background-color: #444;
+        color: #e0e0e0;
+        border: none;
     }
-
-    /* Estilo para las pestañas de estadísticas */
+    .player-selector-card button:hover {
+        background-color: #333;
+    }
     .nav-tabs {
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid #444;
         margin-top: 15px;
     }
-
     .nav-tabs .nav-link {
-        color: #666;
+        color: #b0b0b0;
         border: none;
         border-radius: 8px 8px 0 0;
         transition: background-color 0.3s, color 0.3s;
         font-size: 0.75rem;
     }
-
     .nav-tabs .nav-link:hover {
-        background-color: #f0f0f0;
-        color: #333;
+        background-color: #2a2a2a;
+        color: #ffffff;
     }
-
     .nav-tabs .nav-link.active {
         background-color: #007bff;
         color: white;
     }
-
     .tab-content {
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        background: #1e1e1e;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         border-radius: 0 8px 8px 8px;
         padding: 15px;
         position: relative;
+        color: #e0e0e0;
     }
-
     .tab-content .player-info {
         position: absolute;
         top: 15px;
@@ -194,97 +181,79 @@
         align-items: flex-end;
         min-width: 100px;
     }
-
     .tab-content .player-info .player-name {
         font-size: 0.75rem;
-        color: #333;
+        color: #ffffff;
         margin-bottom: 5px;
     }
-
     .tab-content .player-info .player-number {
         font-size: 3rem;
         font-weight: bold;
         color: #007bff;
         line-height: 1;
     }
-
     .tab-pane .d-flex {
         gap: 20px;
     }
-
-    /* Estilo para los botones dentro de las pestañas */
     .stat-controls {
         display: flex;
-        flex-direction: column; /* Botones uno encima del otro */
-        gap: 8px; /* Separación vertical */
+        flex-direction: column;
+        gap: 8px;
         align-items: center;
     }
-
-    /* Estilo moderno para los botones de + y - */
     .btn-circle {
-        width: 35px; /* Botones más grandes */
+        width: 35px;
         height: 35px;
         padding: 0;
         border-radius: 50%;
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 1rem; /* Iconos más grandes */
+        font-size: 1rem;
         transition: transform 0.2s, box-shadow 0.2s;
         border: none;
         line-height: 35px;
     }
-
     .btn-circle:hover {
         transform: scale(1.1);
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
-
     .btn-circle:active {
         transform: scale(0.95);
     }
-
     .btn-circle.success {
         background-color: #28a745;
         color: white;
     }
-
     .btn-circle.danger {
         background-color: #dc3545;
         color: white;
     }
-
     .btn-circle:disabled {
-        background-color: #cccccc;
+        background-color: #444;
         cursor: not-allowed;
     }
-
-    /* Estilo para el área de resumen y notas */
     .summary-notes {
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        background: #1e1e1e;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         border-radius: 10px;
         padding: 15px;
     }
-
     .summary-notes h4 {
-        color: #333;
+        color: #ffffff;
         margin-bottom: 10px;
     }
-
     .summary-notes p {
-        color: #666;
+        color: #b0b0b0;
         font-size: 0.85rem;
         line-height: 1.4;
     }
-
     .summary-notes textarea {
         border-radius: 8px;
-        border: 1px solid #e0e0e0;
-        font-size: 0.8rem;
+        border: 1px solid #444;
+        background-color: #2a2a2a;
+        color: #e0e0e0;
     }
-
-    /* Estilo para los botones secundarios */
     .action-buttons button {
         padding: 8px 15px;
         font-size: 0.8rem;
@@ -292,137 +261,72 @@
         transition: background-color 0.3s;
         margin-top: 10px;
     }
-
-    .action-buttons .btn-primary {
-        background-color: #007bff;
-        border: none;
-    }
-
-    .action-buttons .btn-primary:hover {
-        background-color: #0056b3;
-    }
-
-    .action-buttons .btn-warning {
-        background-color: #ffc107;
-        border: none;
-    }
-
-    .action-buttons .btn-warning:hover {
-        background-color: #e0a800;
-    }
-
-    .action-buttons .btn-success {
-        background-color: #28a745;
-        border: none;
-    }
-
-    .action-buttons .btn-success:hover {
-        background-color: #218838;
-    }
-
-    .action-buttons .btn-danger {
-        background-color: #dc3545;
-        border: none;
-    }
-
-    .action-buttons .btn-danger:hover {
-        background-color: #c82333;
-    }
-
-    .action-buttons .btn-info {
-        background-color: #17a2b8;
-        border: none;
-    }
-
-    .action-buttons .btn-info:hover {
-        background-color: #138496;
-    }
-
-    /* Ajustes para responsividad */
-    @media (max-width: 768px) { /* Tablets y móviles */
+    @media (max-width: 768px) {
         .team-score {
             width: 100px;
             height: 100px;
         }
-
         .team-score h4 {
             font-size: 0.7rem;
         }
-
         .team-score span {
             font-size: 2rem;
         }
-
         .set-info h5 {
             font-size: 0.8rem;
         }
-
         .set-info span {
             font-size: 1.1rem;
         }
-
         .score-controls {
-            gap: 10px; /* Separación ajustada para móviles */
+            gap: 10px;
         }
-
         .btn-circle {
-            width: 30px; /* Tamaño ajustado para móviles */
+            width: 30px;
             height: 30px;
             font-size: 0.9rem;
         }
-
         .player-selector-card {
-            flex: 0 0 100px; /* Menor tamaño en móviles */
+            flex: 0 0 100px;
             min-width: 100px;
         }
-
         .player-selector-card label {
             font-size: 0.7rem;
         }
-
         .player-selector-card select {
             font-size: 0.7rem;
             height: 25px;
         }
-
         .player-selector-card button {
             font-size: 0.6rem;
             padding: 3px 6px;
         }
-
         .stat-controls {
-            gap: 6px; /* Menor separación en móviles */
+            gap: 6px;
         }
     }
-
-    @media (max-width: 576px) { /* Móviles pequeños */
+    @media (max-width: 576px) {
         .score-area {
             padding: 10px;
         }
-
         .team-score {
             width: 90px;
             height: 90px;
         }
-
         .team-score h4 {
             font-size: 0.6rem;
         }
-
         .team-score span {
             font-size: 1.8rem;
         }
-
         .btn-circle {
             width: 28px;
             height: 28px;
             font-size: 0.8rem;
         }
-
-CO        .player-selector-container {
+        .player-selector-container {
             gap: 8px;
         }
-
         .player-selector-card {
             flex: 0 0 90px;
             min-width: 90px;
@@ -458,14 +362,11 @@ CO        .player-selector-container {
                         </div>
                     </div>
                 </div>
-                <div class="previous-sets" id="previousSets">
-                    <!-- Previous set scores will be dynamically added here -->
-                </div>
+                <div class="previous-sets" id="previousSets"></div>
             </div>
         </div>
     </div>
 
-    <!-- Selección de jugadores en cancha -->
     <div class="row mb-3">
         <div class="col-12">
             <h4>Jugadores en Cancha</h4>
@@ -482,14 +383,13 @@ CO        .player-selector-container {
                         </option>
                         {% endfor %}
                     </select>
-                    <button class="btn btn-light mt-1 w-100" id="select_btn_{{ pos }}" onclick="selectPlayerFromPosition({{ pos }})">Seleccionar</button>
+                    <button class="btn mt-1 w-100" id="select_btn_{{ pos }}" onclick="selectPlayerFromPosition({{ pos }})">Seleccionar</button>
                 </div>
                 {% endfor %}
             </div>
         </div>
     </div>
 
-    <!-- Panel de acciones -->
     <div class="row">
         <div class="col-12">
             <ul class="nav nav-tabs" id="statTabs" role="tablist">
@@ -649,7 +549,6 @@ CO        .player-selector-container {
         </div>
     </div>
 
-    <!-- Resumen y notas -->
     <div class="row mt-3 summary-notes">
         <div class="col-12 col-md-6">
             <h4>Resumen del Jugador</h4>
@@ -661,7 +560,6 @@ CO        .player-selector-container {
         </div>
     </div>
 
-    <!-- Botones secundarios -->
     <div class="row mt-3 action-buttons">
         <div class="col-12 text-center">
             <button class="btn btn-primary me-2" onclick="rotatePositions()">Rotar Posiciones</button>
@@ -794,7 +692,6 @@ function updateStat(jugador_id, stat, action) {
         return;
     }
 
-    // Actualización local inmediata
     let currentValue = parseInt(document.getElementById(stat).innerText) || 0;
     if (action === 'increment') {
         currentValue++;
@@ -803,7 +700,6 @@ function updateStat(jugador_id, stat, action) {
     }
     document.getElementById(stat).innerText = currentValue;
 
-    // Actualizar totales y efectividad localmente si aplica
     if (stat.startsWith('saques_')) {
         const saquesAce = parseInt(document.getElementById('saques_ace').innerText) || 0;
         const saquesFallidos = parseInt(document.getElementById('saques_fallidos').innerText) || 0;
@@ -816,9 +712,8 @@ function updateStat(jugador_id, stat, action) {
         document.getElementById('efectividad_ataque').innerText = ataquesTotales > 0 ? ((ataquesPuntos / ataquesTotales) * 100).toFixed(2) + '%' : '0%';
     }
 
-    updateResumen(jugador_id); // Actualizar resumen inmediatamente
+    updateResumen(jugador_id);
 
-    // Enviar al servidor para persistencia y sincronización
     fetch('/update_stat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1045,7 +940,6 @@ eventSource.onmessage = function(event) {
     const eventData = data.data;
 
     if (eventType === 'stat_updated') {
-        // Solo actualizar si el jugador no es el que inició la acción (evitar duplicación)
         if (eventData.jugador_id !== selectedPlayer) {
             document.getElementById(`${eventData.stat}`).innerText = eventData.value;
             if (eventData.stat.startsWith('saques_')) {
@@ -1122,5 +1016,4 @@ eventSource.onerror = function() {
     console.error('Error en la conexión SSE');
 };
 </script>
-
 {% endblock %}

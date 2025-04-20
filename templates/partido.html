@@ -1,13 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
 <style>
-    /* Estilo para las cards */
     .match-card {
         transition: transform 0.2s, box-shadow 0.2s;
         border: none;
         border-radius: 10px;
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        background-color: #1e1e1e;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         margin-bottom: 15px;
         padding: 15px;
         position: relative;
@@ -15,16 +14,16 @@
     }
     .match-card:hover {
         transform: translateY(-5px);
-        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.15), -5px -5px 20px rgba(255, 255, 255, 0.9);
+        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
     }
     .match-card h5 {
         margin-bottom: 5px;
         font-weight: 600;
-        color: #333;
+        color: #ffffff;
     }
     .match-card p {
         margin: 2px 0;
-        color: #666;
+        color: #b0b0b0;
     }
     .match-card .estado {
         position: absolute;
@@ -37,11 +36,11 @@
     }
     .estado.en-curso {
         background-color: #28a745;
-        color: white;
+        color: #ffffff;
     }
     .estado.finalizado {
         background-color: #6c757d;
-        color: white;
+        color: #ffffff;
     }
     .match-card .marcador {
         font-size: 1rem;
@@ -50,19 +49,18 @@
     }
     .match-card .set-scores {
         font-size: 0.8rem;
-        color: #333;
+        color: #b0b0b0;
         margin-top: 5px;
     }
-    /* Ajustes para responsividad */
     @media (max-width: 576px) {
         .match-card {
             padding: 10px;
         }
         .match-card h5 {
-            font-size: 0.65rem !important;
+            font-size: 0.65rem;
         }
         .match-card p {
-            font-size: 0.6rem !important;
+            font-size: 0.6rem;
         }
         .match-card .marcador {
             font-size: 0.8rem;
@@ -89,7 +87,6 @@
         </div>
     </div>
 
-    <!-- Lista de partidos en cards -->
     <div class="row" id="listaPartidos">
         {% for partido in partidos %}
         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
@@ -123,7 +120,6 @@
             </div>
         </div>
 
-        <!-- Modal de edición -->
         <div class="modal fade" id="editarPartidoModal{{ partido.id }}" tabindex="-1">
             <div class="modal-dialog">
                 <form method="POST" action="{{ url_for('editar_partido', id=partido.id) }}">
@@ -133,22 +129,28 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            <input type="text" class="form-control mb-2" name="rival" value="{{ partido.rival }}" required>
-                            <select class="form-control mb-2" name="equipo" required>
-                                <option value="">Selecciona un equipo</option>
-                                {% for equipo in equipos %}
-                                <option value="{{ equipo.id }}" {% if equipo.id == partido.equipo_id %}selected{% endif %}>{{ equipo.nombre }}</option>
-                                {% endfor %}
-                            </select>
-                            <div class="mb-2">
-                                <label for="es_local" class="form-label">Lugar del Partido</label>
+                            <div class="mb-3">
+                                <label class="form-label">Rival</label>
+                                <input type="text" class="form-control" name="rival" value="{{ partido.rival }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Equipo</label>
+                                <select class="form-control" name="equipo" required>
+                                    <option value="">Selecciona un equipo</option>
+                                    {% for equipo in equipos %}
+                                    <option value="{{ equipo.id }}" {% if equipo.id == partido.equipo_id %}selected{% endif %}>{{ equipo.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Lugar del Partido</label>
                                 <select class="form-control" name="es_local" required>
                                     <option value="local" {% if partido.es_local %}selected{% endif %}>Local</option>
                                     <option value="visitante" {% if not partido.es_local %}selected{% endif %}>Visitante</option>
                                 </select>
                             </div>
-                            <div class="mb-2">
-                                <label for="tipo_partido" class="form-label">Tipo de Partido</label>
+                            <div class="mb-3">
+                                <label class="form-label">Tipo de Partido</label>
                                 <select class="form-control" name="tipo_partido" required>
                                     <option value="Liga" {% if partido.tipo_partido == 'Liga' %}selected{% endif %}>Liga</option>
                                     <option value="Amistoso" {% if partido.tipo_partido == 'Amistoso' %}selected{% endif %}>Amistoso</option>
@@ -158,6 +160,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Guardar</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         </div>
                     </div>
                 </form>
@@ -167,7 +170,6 @@
     </div>
 </div>
 
-<!-- Modal de creación -->
 <div class="modal fade" id="partidoModal">
     <div class="modal-dialog">
         <form method="POST" action="{{ url_for('crear_partido') }}">
@@ -177,22 +179,28 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="text" class="form-control mb-2" name="rival" placeholder="Nombre del Rival" required>
-                    <select class="form-control mb-2" name="equipo" required>
-                        <option value="">Selecciona un equipo</option>
-                        {% for equipo in equipos %}
-                        <option value="{{ equipo.id }}">{{ equipo.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                    <div class="mb-2">
-                        <label for="es_local" class="form-label">Lugar del Partido</label>
+                    <div class="mb-3">
+                        <label class="form-label">Rival</label>
+                        <input type="text" class="form-control" name="rival" placeholder="Nombre del Rival" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Equipo</label>
+                        <select class="form-control" name="equipo" required>
+                            <option value="">Selecciona un equipo</option>
+                            {% for equipo in equipos %}
+                            <option value="{{ equipo.id }}">{{ equipo.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Lugar del Partido</label>
                         <select class="form-control" name="es_local" required>
                             <option value="local">Local</option>
                             <option value="visitante">Visitante</option>
                         </select>
                     </div>
-                    <div class="mb-2">
-                        <label for="tipo_partido" class="form-label">Tipo de Partido</label>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Partido</label>
                         <select class="form-control" name="tipo_partido" required>
                             <option value="Liga">Liga</option>
                             <option value="Amistoso">Amistoso</option>
@@ -202,6 +210,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Guardar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 </div>
             </div>
         </form>

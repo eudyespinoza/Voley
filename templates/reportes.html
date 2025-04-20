@@ -1,10 +1,9 @@
 {% extends 'base.html' %}
 {% block content %}
 <style>
-    /* Estilo neumórfico para los selectores */
     .filter-card {
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        background-color: #1e1e1e;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         border-radius: 8px;
         padding: 10px;
         margin-bottom: 10px;
@@ -12,63 +11,59 @@
     }
     .filter-card:hover {
         transform: translateY(-3px);
-        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.15), -5px -5px 20px rgba(255, 255, 255, 0.9);
+        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
     }
     .filter-card label {
-        color: #333;
+        color: #ffffff;
         margin-bottom: 5px;
         display: block;
     }
     .filter-card select {
-        font-size: 0.65rem !important;
+        font-size: 0.65rem;
         padding: 5px;
         height: 30px;
         width: 100%;
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+        border: 1px solid #444;
     }
-
-    /* Estilo para el área de estadísticas */
+    .filter-card select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
     .stats-area {
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        background-color: #1e1e1e;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         border-radius: 10px;
         padding: 15px;
         margin-bottom: 20px;
     }
     .stats-area h4 {
-        color: #333;
+        color: #ffffff;
         margin-bottom: 15px;
     }
     .stats-area p {
-        color: #666;
+        color: #b0b0b0;
         margin-bottom: 10px;
     }
     .stats-area canvas {
         max-width: 100%;
         height: auto;
+        background-color: #2a2a2a;
+        border-radius: 8px;
     }
-
-    /* Estilo para los botones de exportación */
     .export-buttons button {
         padding: 8px 15px;
         font-size: 0.7rem;
         border-radius: 8px;
         transition: background-color 0.3s;
     }
-    .export-buttons .btn-danger {
-        background-color: #dc3545;
-        border: none;
-    }
-    .export-buttons .btn-danger:hover {
-        background-color: #c82333;
-    }
-
-    /* Ajustes para responsividad */
     @media (max-width: 576px) {
         .filter-card {
             padding: 8px;
         }
         .filter-card select {
-            font-size: 0.6rem !important;
+            font-size: 0.6rem;
             padding: 3px;
             height: 25px;
         }
@@ -76,10 +71,10 @@
             padding: 10px;
         }
         .stats-area h4 {
-            font-size: 0.65rem !important;
+            font-size: 0.65rem;
         }
         .stats-area p {
-            font-size: 0.6rem !important;
+            font-size: 0.6rem;
         }
         .export-buttons button {
             padding: 5px 10px;
@@ -235,8 +230,8 @@ function cargarEstadisticas() {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad' } },
-                        x: { title: { display: true, text: 'Saques' } }
+                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad', color: '#e0e0e0' }, ticks: { color: '#e0e0e0' } },
+                        x: { title: { display: true, text: 'Saques', color: '#e0e0e0' }, ticks: { color: '#e0e0e0' } }
                     },
                     plugins: { legend: { display: false } }
                 }
@@ -258,8 +253,8 @@ function cargarEstadisticas() {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad' } },
-                        x: { title: { display: true, text: 'Ataques' } }
+                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad', color: '#e0e0e0' }, ticks: { color: '#e0e0e0' } },
+                        x: { title: { display: true, text: 'Ataques', color: '#e0e0e0' }, ticks: { color: '#e0e0e0' } }
                     },
                     plugins: { legend: { display: false } }
                 }
@@ -281,8 +276,8 @@ function cargarEstadisticas() {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad' } },
-                        x: { title: { display: true, text: 'Recepciones' } }
+                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad', color: '#e0e0e0' }, ticks: { color: '#e0e0e0' } },
+                        x: { title: { display: true, text: 'Recepciones', color: '#e0e0e0' }, ticks: { color: '#e0e0e0' } }
                     },
                     plugins: { legend: { display: false } }
                 }
@@ -304,8 +299,8 @@ function cargarEstadisticas() {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad' } },
-                        x: { title: { display: true, text: 'Bloqueos' } }
+                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad', color: '#e0e0e0' }, ticks: { color: '#e0e0e0' } },
+                        x: { title: { display: true, text: 'Bloqueos', color: '#e0e0e0' }, ticks: { color: '#e0e0e0' } }
                     },
                     plugins: { legend: { display: false } }
                 }
@@ -327,8 +322,8 @@ function cargarEstadisticas() {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad' } },
-                        x: { title: { display: true, text: 'Defensas' } }
+                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad', color: '#e0e0e0' }, ticks: { color: '#e0e0e0' } },
+                        x: { title: { display: true, text: 'Defensas', color: '#e0e0e0' }, ticks: { color: '#e0e0e0' } }
                     },
                     plugins: { legend: { display: false } }
                 }
@@ -350,8 +345,8 @@ function cargarEstadisticas() {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad' } },
-                        x: { title: { display: true, text: 'Asistencias' } }
+                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad', color: '#e0e0e0' }, ticks: { color: '#e0e0e0' } },
+                        x: { title: { display: true, text: 'Asistencias', color: '#e0e0e0' }, ticks: { color: '#e0e0e0' } }
                     },
                     plugins: { legend: { display: false } }
                 }
@@ -411,22 +406,18 @@ function exportarEstadisticas() {
         return;
     }
 
-    console.log('Sending request with body:', body); // Debug log
-
     fetch('/exportar_pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body
     })
     .then(response => {
-        console.log('Response status:', response.status); // Debug log
         if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
-        console.log('Response data:', data); // Debug log
         if (data.error) {
             alert(`Export failed: ${data.error}`);
         } else {

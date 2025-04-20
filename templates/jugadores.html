@@ -1,13 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
 <style>
-    /* Estilo para las cards (mismo estilo que en partidos) */
     .player-card {
         transition: transform 0.2s, box-shadow 0.2s;
         border: none;
         border-radius: 10px;
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        background-color: #1e1e1e;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         margin-bottom: 15px;
         padding: 15px;
         position: relative;
@@ -16,103 +15,71 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        min-height: 150px; /* Asegurar espacio suficiente para el diseño */
+        min-height: 150px;
     }
     .player-card:hover {
         transform: translateY(-5px);
-        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.15), -5px -5px 20px rgba(255, 255, 255, 0.9);
+        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
     }
     .player-card h5 {
         margin-bottom: 5px;
         font-weight: 600;
-        color: #333;
+        color: #ffffff;
     }
     .player-card p {
         margin: 2px 0;
-        color: #666;
+        color: #b0b0b0;
     }
     .player-card .numero {
         position: absolute;
         top: 10px;
         right: 10px;
-        font-size: 3rem !important; /* Tamaño grande para el número */
+        font-size: 3rem;
         font-weight: bold;
-        color: #007bff; /* Color azul vibrante para que resalte */
+        color: #007bff;
         opacity: 0.8;
     }
-    /* Estilo mejorado para el modal */
     .modal-content {
-        border: none;
-        border-radius: 12px;
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        background-color: #1e1e1e;
+        color: #e0e0e0;
     }
     .modal-header {
-        background: linear-gradient(90deg, #007bff, #0056b3);
-        color: white;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
-        border-bottom: none;
-        padding: 15px 20px;
-    }
-    .modal-header .modal-title {
-        font-weight: 600;
-    }
-    .modal-header .btn-close {
-        filter: invert(1) grayscale(100%) brightness(200%);
-    }
-    .modal-body {
-        padding: 20px;
+        background-color: #2a2a2a;
+        color: #ffffff;
+        border-bottom: 1px solid #444;
     }
     .modal-body p {
         margin: 8px 0;
         display: flex;
         justify-content: space-between;
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid #444;
         padding-bottom: 5px;
     }
     .modal-body p strong {
-        color: #333;
+        color: #ffffff;
         font-weight: 600;
     }
     .modal-body p span {
-        color: #666;
+        color: #b0b0b0;
     }
-    .modal-footer {
-        border-top: none;
-        padding: 10px 20px;
-    }
-    .modal-footer .btn-secondary {
-        background-color: #6c757d;
-        border: none;
-        border-radius: 8px;
-        transition: background-color 0.3s;
-    }
-    .modal-footer .btn-secondary:hover {
-        background-color: #5a6268;
-    }
-    /* Ajustes para responsividad */
     @media (max-width: 576px) {
         .player-card {
             padding: 10px;
             min-height: 120px;
         }
         .player-card h5 {
-            font-size: 0.65rem !important;
+            font-size: 0.65rem;
         }
         .player-card p {
-            font-size: 0.6rem !important;
+            font-size: 0.6rem;
         }
         .player-card .numero {
-            font-size: 1.5rem; /* Reducir el tamaño del número en pantallas pequeñas */
+            font-size: 1.5rem;
             top: 5px;
             right: 5px;
         }
-        .modal-body {
-            padding: 15px;
-        }
         .modal-body p {
-            font-size: 0.6rem !important;
+            font-size: 0.6rem;
         }
     }
 </style>
@@ -138,7 +105,6 @@
         </div>
     </div>
 
-    <!-- Lista de jugadores en cards -->
     <div class="row" id="listaJugadores">
         {% for jugador in jugadores %}
         <div class="col-12 col-sm-6 col-md-4 col-lg-3 player-card-container" data-jugador-id="{{ jugador.id }}" data-equipo-id="{{ jugador.equipos[0].id if jugador.equipos else '' }}" data-nombre="{{ jugador.nombre|lower }}">
@@ -160,7 +126,6 @@
             </div>
         </div>
 
-        <!-- Modal de detalles -->
         <div class="modal fade" id="detallesJugadorModal{{ jugador.id }}" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -186,7 +151,6 @@
             </div>
         </div>
 
-        <!-- Modal de edición -->
         <div class="modal fade" id="editarJugadorModal{{ jugador.id }}" tabindex="-1">
             <div class="modal-dialog">
                 <form method="POST" action="{{ url_for('editar_jugador', id=jugador.id) }}">
@@ -196,31 +160,59 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            <input type="text" class="form-control mb-2" name="nombre" value="{{ jugador.nombre }}" required>
-                            <input type="number" class="form-control mb-2" name="numero" value="{{ jugador.numero }}" required>
-                            <select name="posicion" class="form-control mb-2" required>
-                                <option value="Punta" {% if jugador.posicion == "Punta" %}selected{% endif %}>Punta</option>
-                                <option value="Armador" {% if jugador.posicion == "Armador" %}selected{% endif %}>Armador</option>
-                                <option value="Libero" {% if jugador.posicion == "Libero" %}selected{% endif %}>Líbero</option>
-                                <option value="Central" {% if jugador.posicion == "Central" %}selected{% endif %}>Central</option>
-                            </select>
-                            <select name="equipo" class="form-control mb-2" required>
-                                {% for equipo in equipos %}
-                                <option value="{{ equipo.id }}" {% if equipo in jugador.equipos %}selected{% endif %}>{{ equipo.nombre }}</option>
-                                {% endfor %}
-                            </select>
-                            <input type="number" step="0.01" class="form-control mb-2" name="altura" value="{{ jugador.altura or '' }}" placeholder="Altura (m)">
-                            <input type="number" step="0.1" class="form-control mb-2" name="peso" value="{{ jugador.peso or '' }}" placeholder="Peso (kg)">
-                            <select name="mano_dominante" class="form-control mb-2">
-                                <option value="">Selecciona mano dominante</option>
-                                <option value="Diestro" {% if jugador.mano_dominante == "Diestro" %}selected{% endif %}>Diestro</option>
-                                <option value="Zurdo" {% if jugador.mano_dominante == "Zurdo" %}selected{% endif %}>Zurdo</option>
-                            </select>
-                            <input type="text" class="form-control mb-2" name="grupo_sanguineo" value="{{ jugador.grupo_sanguineo or '' }}" placeholder="Grupo sanguíneo">
-                            <textarea class="form-control mb-2" name="historial_lesiones" placeholder="Historial de lesiones">{{ jugador.historial_lesiones or '' }}</textarea>
+                            <div class="mb-3">
+                                <label class="form-label">Nombre</label>
+                                <input type="text" class="form-control" name="nombre" value="{{ jugador.nombre }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Número</label>
+                                <input type="number" class="form-control" name="numero" value="{{ jugador.numero }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Posición</label>
+                                <select name="posicion" class="form-control" required>
+                                    <option value="Punta" {% if jugador.posicion == "Punta" %}selected{% endif %}>Punta</option>
+                                    <option value="Armador" {% if jugador.posicion == "Armador" %}selected{% endif %}>Armador</option>
+                                    <option value="Libero" {% if jugador.posicion == "Libero" %}selected{% endif %}>Líbero</option>
+                                    <option value="Central" {% if jugador.posicion == "Central" %}selected{% endif %}>Central</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Equipo</label>
+                                <select name="equipo" class="form-control" required>
+                                    {% for equipo in equipos %}
+                                    <option value="{{ equipo.id }}" {% if equipo in jugador.equipos %}selected{% endif %}>{{ equipo.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Altura (m)</label>
+                                <input type="number" step="0.01" class="form-control" name="altura" value="{{ jugador.altura or '' }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Peso (kg)</label>
+                                <input type="number" step="0.1" class="form-control" name="peso" value="{{ jugador.peso or '' }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Mano dominante</label>
+                                <select name="mano_dominante" class="form-control">
+                                    <option value="">Selecciona</option>
+                                    <option value="Diestro" {% if jugador.mano_dominante == "Diestro" %}selected{% endif %}>Diestro</option>
+                                    <option value="Zurdo" {% if jugador.mano_dominante == "Zurdo" %}selected{% endif %}>Zurdo</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Grupo sanguíneo</label>
+                                <input type="text" class="form-control" name="grupo_sanguineo" value="{{ jugador.grupo_sanguineo or '' }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Historial de lesiones</label>
+                                <textarea class="form-control" name="historial_lesiones">{{ jugador.historial_lesiones or '' }}</textarea>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Guardar</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         </div>
                     </div>
                 </form>
@@ -230,7 +222,6 @@
     </div>
 </div>
 
-<!-- Modal de creación -->
 <div class="modal fade" id="jugadorModal">
     <div class="modal-dialog">
         <form method="POST" action="{{ url_for('crear_jugador') }}">
@@ -240,31 +231,59 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="text" class="form-control mb-2" name="nombre" placeholder="Nombre del jugador" required>
-                    <input type="number" class="form-control mb-2" name="numero" placeholder="Número de camiseta" required>
-                    <select name="posicion" class="form-control mb-2" required>
-                        <option value="Punta">Punta</option>
-                        <option value="Armador">Armador</option>
-                        <option value="Libero">Líbero</option>
-                        <option value="Central">Central</option>
-                    </select>
-                    <select name="equipo" class="form-control mb-2" required>
-                        {% for equipo in equipos %}
-                        <option value="{{ equipo.id }}">{{ equipo.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                    <input type="number" step="0.01" class="form-control mb-2" name="altura" placeholder="Altura (m)">
-                    <input type="number" step="0.1" class="form-control mb-2" name="peso" placeholder="Peso (kg)">
-                    <select name="mano_dominante" class="form-control mb-2">
-                        <option value="">Selecciona mano dominante</option>
-                        <option value="Diestro">Diestro</option>
-                        <option value="Zurdo">Zurdo</option>
-                    </select>
-                    <input type="text" class="form-control mb-2" name="grupo_sanguineo" placeholder="Grupo sanguíneo (ej: A+)">
-                    <textarea class="form-control mb-2" name="historial_lesiones" placeholder="Historial de lesiones"></textarea>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-control" name="nombre" placeholder="Nombre del jugador" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Número</label>
+                        <input type="number" class="form-control" name="numero" placeholder="Número de camiseta" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Posición</label>
+                        <select name="posicion" class="form-control" required>
+                            <option value="Punta">Punta</option>
+                            <option value="Armador">Armador</option>
+                            <option value="Libero">Líbero</option>
+                            <option value="Central">Central</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Equipo</label>
+                        <select name="equipo" class="form-control" required>
+                            {% for equipo in equipos %}
+                            <option value="{{ equipo.id }}">{{ equipo.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Altura (m)</label>
+                        <input type="number" step="0.01" class="form-control" name="altura" placeholder="Altura (m)">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Peso (kg)</label>
+                        <input type="number" step="0.1" class="form-control" name="peso" placeholder="Peso (kg)">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mano dominante</label>
+                        <select name="mano_dominante" class="form-control">
+                            <option value="">Selecciona mano dominante</option>
+                            <option value="Diestro">Diestro</option>
+                            <option value="Zurdo">Zurdo</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Grupo sanguíneo</label>
+                        <input type="text" class="form-control" name="grupo_sanguineo" placeholder="Grupo sanguíneo (ej: A+)">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Historial de lesiones</label>
+                        <textarea class="form-control" name="historial_lesiones" placeholder="Historial de lesiones"></textarea>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Guardar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 </div>
             </div>
         </form>

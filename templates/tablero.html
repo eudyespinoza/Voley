@@ -1,24 +1,21 @@
 {% extends 'base.html' %}
 {% block content %}
 <style>
-    /* Estilos generales */
     body {
         margin: 0;
         overflow: hidden;
-        background-color: #f8f9fa; /* Fondo general */
+        background-color: #121212;
     }
-
-    /* Ajustar la sidebar para que comience debajo del navbar */
     .sidebar {
         position: fixed;
-        top: 56px; /* Debajo del navbar */
+        top: 56px;
         left: -250px;
         width: 250px;
-        height: calc(100% - 56px); /* Ajustar altura */
+        height: calc(100% - 56px);
         transition: left 0.3s ease-in-out;
         z-index: 1000;
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        background-color: #1e1e1e;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         border-radius: 0 8px 8px 0;
         padding: 15px;
     }
@@ -26,7 +23,7 @@
         left: 0;
     }
     .sidebar h4 {
-        color: #333;
+        color: #ffffff;
         margin-bottom: 15px;
     }
     .sidebar .menu-item {
@@ -34,34 +31,38 @@
         text-align: center;
     }
     .sidebar .menu-item label {
-        color: #333;
-        font-size: 0.7rem !important;
+        color: #ffffff;
+        font-size: 0.7rem;
     }
     .sidebar .menu-item input[type="color"] {
         width: 100%;
         height: 30px;
         border-radius: 5px;
+        background-color: #2a2a2a;
+        border: 1px solid #444;
     }
     .sidebar .menu-item input[type="range"] {
         width: 100%;
+        accent-color: #007bff;
     }
     .sidebar .menu-item button {
-        font-size: 0.7rem !important;
+        font-size: 0.7rem;
         border-radius: 5px;
         transition: background-color 0.3s;
+        background-color: #444;
+        color: #e0e0e0;
+        border: none;
     }
     .sidebar .menu-item button:hover {
         background-color: #007bff;
         color: white;
     }
     .sidebar .menu-item button.active {
-        background-color: #ffcc00 !important;
-        color: black !important;
+        background-color: #ffcc00;
+        color: black;
     }
-
-    /* Botón de toggle */
     #toggleSidebar {
-        top: 60px !important; /* Ajustado para no superponerse con el navbar */
+        top: 60px;
         left: 10px;
         z-index: 1001;
         border-radius: 50%;
@@ -70,28 +71,24 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
-        color: #333;
+        background-color: #1e1e1e;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        color: #e0e0e0;
         transition: transform 0.2s;
     }
     #toggleSidebar:hover {
         transform: scale(1.1);
     }
-
-    /* Canvas */
     #strategyCanvas {
         position: fixed;
-        top: 56px; /* Debajo del navbar */
+        top: 56px;
         left: 0;
         z-index: 1;
         display: block;
     }
-
-    /* Botones de acción */
     .action-buttons {
         position: fixed;
-        top: 75px; /* Ajustado para no superponerse con el navbar */
+        top: 75px;
         right: 20px;
         z-index: 1001;
         display: flex;
@@ -104,9 +101,9 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
-        color: #333;
+        background-color: #1e1e1e;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        color: #e0e0e0;
         transition: transform 0.2s;
         font-size: 20px;
         padding: 10px;
@@ -114,31 +111,22 @@
     .action-buttons button:hover {
         transform: scale(1.1);
     }
-    .action-buttons .btn-danger {
-        background: #dc3545;
-        color: white;
-    }
-    .action-buttons .btn-danger:hover {
-        background: #c82333;
-    }
-
-    /* Ajustes para responsividad */
     @media (max-width: 576px) {
         .sidebar {
             width: 200px;
             padding: 10px;
         }
         .sidebar h4 {
-            font-size: 0.75rem !important;
+            font-size: 0.75rem;
         }
         .sidebar .menu-item label {
-            font-size: 0.6rem !important;
+            font-size: 0.6rem;
         }
         .sidebar .menu-item input[type="color"] {
             height: 25px;
         }
         .sidebar .menu-item button {
-            font-size: 0.6rem !important;
+            font-size: 0.6rem;
         }
         #toggleSidebar {
             top: 60px;
@@ -158,7 +146,7 @@
     }
 </style>
 
-<button id="toggleSidebar" class="btn btn-dark position-fixed top-0 start-0 m-2">
+<button id="toggleSidebar" class="btn position-fixed top-0 start-0 m-2">
     <i class="bi bi-list"></i>
 </button>
 <div id="sidebar" class="sidebar p-3">
@@ -172,17 +160,17 @@
         <input type="range" id="lineWidth" min="1" max="10" value="2" class="form-range">
     </div>
     <div class="menu-item d-flex gap-2">
-        <button id="modeLine" class="btn btn-outline-dark flex-grow-1">
+        <button id="modeLine" class="btn flex-grow-1">
             <i class="bi bi-pencil"></i> Línea
         </button>
-        <button id="modeCircle" class="btn btn-outline-dark flex-grow-1">
+        <button id="modeCircle" class="btn flex-grow-1">
             <i class="bi bi-circle"></i> Círculo
         </button>
     </div>
 </div>
 <div class="action-buttons">
-    <button id="undo" class="btn btn-dark"><i class="bi bi-arrow-counterclockwise"></i></button>
-    <button id="redo" class="btn btn-dark"><i class="bi bi-arrow-clockwise"></i></button>
+    <button id="undo" class="btn"><i class="bi bi-arrow-counterclockwise"></i></button>
+    <button id="redo" class="btn"><i class="bi bi-arrow-clockwise"></i></button>
     <button id="clearCanvas" class="btn btn-danger"><i class="bi bi-trash"></i></button>
 </div>
 <canvas id="strategyCanvas"></canvas>
@@ -200,7 +188,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function resizeCanvas() {
         canvasWidth = window.innerWidth;
-        canvasHeight = window.innerHeight - 56; // Ajustar para el navbar
+        canvasHeight = window.innerHeight - 56;
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
         redrawBackground();
@@ -209,21 +197,17 @@ document.addEventListener("DOMContentLoaded", function () {
     function redrawBackground() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (backgroundImage.complete && backgroundImage.naturalWidth > 0) {
-            // Calcular la relación de aspecto de la imagen
             const imgAspectRatio = backgroundImage.naturalWidth / backgroundImage.naturalHeight;
             const canvasAspectRatio = canvasWidth / canvasHeight;
 
             let drawWidth, drawHeight, offsetX, offsetY;
 
-            // Mantener la forma original de la imagen
             if (imgAspectRatio > canvasAspectRatio) {
-                // La imagen es más ancha que el canvas
                 drawWidth = canvasWidth;
                 drawHeight = canvasWidth / imgAspectRatio;
                 offsetX = 0;
                 offsetY = (canvasHeight - drawHeight) / 2;
             } else {
-                // La imagen es más alta que el canvas
                 drawHeight = canvasHeight;
                 drawWidth = canvasHeight * imgAspectRatio;
                 offsetX = (canvasWidth - drawWidth) / 2;
@@ -231,14 +215,12 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             if (!isSmallScreen) {
-                // En pantallas grandes, rotar la imagen para que la cancha se vea verticalmente
                 ctx.save();
                 ctx.translate(canvasWidth / 2, canvasHeight / 2);
-                ctx.rotate(-Math.PI / 2); // Rotar 90 grados en sentido antihorario
+                ctx.rotate(-Math.PI / 2);
                 ctx.drawImage(backgroundImage, -drawHeight / 2, -drawWidth / 2, drawHeight, drawWidth);
                 ctx.restore();
             } else {
-                // En pantallas pequeñas, mostrar la cancha horizontalmente sin rotación
                 ctx.drawImage(backgroundImage, offsetX, offsetY, drawWidth, drawHeight);
             }
         }
@@ -273,12 +255,10 @@ document.addEventListener("DOMContentLoaded", function () {
         let x = event.clientX - rect.left;
         let y = event.clientY - rect.top;
         if (!isSmallScreen) {
-            // Ajustar coordenadas para la rotación de -90 grados (antihorario) en pantallas grandes
             const centerX = canvasWidth / 2;
             const centerY = canvasHeight / 2;
             const translatedX = x - centerX;
             const translatedY = y - centerY;
-            // Rotación de -90 grados: (x, y) -> (-y, x)
             x = -translatedY + centerX;
             y = translatedX + centerY;
         }
@@ -288,7 +268,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function applyRotation() {
         if (!isSmallScreen) {
             ctx.translate(canvasWidth / 2, canvasHeight / 2);
-            ctx.rotate(-Math.PI / 2); // Rotar -90 grados (antihorario) en pantallas grandes
+            ctx.rotate(-Math.PI / 2);
             ctx.translate(-canvasHeight / 2, -canvasWidth / 2);
         }
     }
@@ -380,7 +360,6 @@ document.addEventListener("DOMContentLoaded", function () {
     canvas.addEventListener("mouseup", stopDrawing);
     canvas.addEventListener("mouseleave", stopDrawing);
 
-    // Soporte para dispositivos táctiles
     canvas.addEventListener("touchstart", function (e) {
         e.preventDefault();
         startDrawing(e.touches[0]);

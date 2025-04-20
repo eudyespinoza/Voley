@@ -1,13 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
 <style>
-    /* Estilo para las cards (mismo estilo que en jugadores y partidos) */
     .index-card {
         transition: transform 0.2s, box-shadow 0.2s;
         border: none;
         border-radius: 10px;
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        background-color: #1e1e1e;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         margin-bottom: 15px;
         padding: 15px;
         position: relative;
@@ -16,32 +15,31 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        min-height: 120px; /* Asegurar espacio suficiente para el diseño */
+        min-height: 120px;
     }
     .index-card:hover {
         transform: translateY(-5px);
-        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.15), -5px -5px 20px rgba(255, 255, 255, 0.9);
+        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
     }
     .index-card h5 {
         margin-bottom: 5px;
         font-weight: 600;
-        color: #333;
+        color: #ffffff;
     }
     .index-card p {
         margin: 2px 0;
-        color: #666;
+        color: #b0b0b0;
     }
-    /* Ajustes para responsividad */
     @media (max-width: 576px) {
         .index-card {
             padding: 10px;
             min-height: 100px;
         }
         .index-card h5 {
-            font-size: 0.65rem !important;
+            font-size: 0.65rem;
         }
         .index-card p {
-            font-size: 0.6rem !important;
+            font-size: 0.6rem;
         }
     }
 </style>

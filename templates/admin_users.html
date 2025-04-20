@@ -1,5 +1,51 @@
 {% extends 'base.html' %}
 {% block content %}
+<style>
+    .table {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+        border-collapse: collapse;
+    }
+    .table th {
+        background-color: #2a2a2a;
+        color: #ffffff;
+        border: 1px solid #444;
+    }
+    .table td {
+        border: 1px solid #444;
+        color: #e0e0e0;
+    }
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #252525;
+    }
+    .table-striped tbody tr:hover {
+        background-color: #333;
+    }
+    .modal-content {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+        border: none;
+        border-radius: 12px;
+    }
+    .modal-header {
+        background-color: #2a2a2a;
+        color: #ffffff;
+        border-bottom: 1px solid #444;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+    .modal-header .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
+    .modal-body {
+        padding: 20px;
+    }
+    .modal-footer {
+        border-top: 1px solid #444;
+        padding: 10px 20px;
+    }
+</style>
+
 <div class="container mt-3">
     <h2>Gestión de Usuarios</h2>
     <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createUserModal">Nuevo Usuario</button>
@@ -54,6 +100,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="submit" class="btn btn-success">Guardar</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                             </div>
                         </div>
                     </form>
@@ -90,6 +137,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-success">Crear</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 </div>
             </div>
         </form>
